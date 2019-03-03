@@ -1,4 +1,4 @@
-# api
+# AngelThump API
 
 > API for AngelThump
 
