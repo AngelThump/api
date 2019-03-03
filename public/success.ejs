@@ -1,0 +1,18 @@
+<title>AngelThump</title>
+<link href="/css/success_page.css" rel="stylesheet">
+<link rel="prefetch" href="/assets/small_logo.png">
+<link href="/css/html.css" rel="stylesheet">
+<div class="success-page">
+<img src="/assets/small_logo.png" />
+  <div>
+    <div class="success-wrapper-message">
+      <h2 id="success-message" class="success-message"></h2>
+    </div>
+    <p><a href="https://angelthump.com" class="success-link">Back to the home page</a></p>
+  </div>
+</div>
+
+<script>
+  successMessage = "<%= message %>";
+  document.getElementById("success-message").innerHTML = successMessage;
+</script>

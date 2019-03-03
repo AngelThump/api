@@ -1,0 +1,20 @@
+<title>Error</title>
+<link href="/css/error_page.css" rel="stylesheet">
+<link rel="prefetch" href="/assets/error.png">
+<link href="/css/html.css" rel="stylesheet">
+<div class="error-page">
+<img src="/assets/error.png" />
+  <div>
+    <h1 id="error-code" class="error-code"></h1>
+    <div class="error-wrapper-message">
+      <h2 id="error-message" class="error-message"></h2>
+    </div>
+    <p><a href="https://angelthump.com" class="error-link">Back to the home page</a></p>
+  </div>
+</div>
+
+<script>
+  var errorCode = "<%= code %>", errorMessage = "<%= message %>";
+  document.getElementById("error-code").innerHTML = errorCode;
+  document.getElementById("error-message").innerHTML = errorMessage;
+</script>

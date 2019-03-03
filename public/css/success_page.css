@@ -1,0 +1,41 @@
+.success-page {
+    color: #000;
+    background: #fff;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: absolute;
+    font-family: "SF UI Text", "Helvetica Neue", "Lucida Grande";
+    text-align: center;
+    padding-top: 10%;
+  }
+  .success-code {
+    display: inline-block;
+    font-size: 36px;
+    font-weight: 500;
+    vertical-align: top;
+    border-right: 1px solid rgba(0, 0, 0, 0.298039);
+    margin: 0px 20px 0px 0px;
+    padding: 10px 20px;
+  }
+  .success-wrapper-message {
+    display: inline-block;
+    text-align: left;
+    line-height: 49px;
+    height: 0px;
+    vertical-align: middle;
+  }
+  .success-message {
+    font-size: 24px;
+    font-weight: normal;
+    margin: 0px;
+    padding: 0px;
+  }
+  .success-link {
+    color: #00BCD4;
+    font-weight: normal;
+    text-decoration: none;
+    font-size: 24px;
+    line-height: 300px;
+  }
