@@ -52,7 +52,7 @@ module.exports = function (app) {
             })
         })
         .catch(function (err) {
-            res.status(err.statusCode).render('error.ejs', {code: err.statusCode, message: "oopsie woopsie, what happened D:"});
+            res.status(err.statusCode).render('error.ejs', {code: err.statusCode, message: "An error occurred while linking your account!"});
             console.error(err.message);
         });
     }
@@ -60,59 +60,56 @@ module.exports = function (app) {
 
 module.exports.verify = function (app) {
     return function(req, res, next) {
+        const user = req.user;
         const data = res.locals.patronData;
         const patreonID = data.id;
-        const user = req.user;
-
-        app.service('users').patch(user._id, {
-            patreonID: patreonID
-        }).then(() => {
-            console.log(user.email + " assigned with " + patreonID);
-        }).catch(e => {
-            console.error(e);
-        });
-
         const amount = data.attributes.will_pay_amount_cents;
         const patron_status = data.attributes.patron_status;
         const last_charged_status = data.attributes.last_charge_status;
 
-        if(amount >= 500) {
-            if(patron_status == "active_patron") {
-                if(last_charged_status == "Paid") {
-                    var tier;
-                    if(amount >= 500 && amount < 1000) {
-                        tier = 1;
-                    } else {
-                        tier = 2;
-                    }
-                    if(user.isVerified) {
-                        if(user.tier != patronTier) {
-                            app.service('users').patch(user._id, {
-                                patronTier: tier
-                            })
-                        }
-                        if(user.isPatron) {
-                            app.service('users').patch(user._id, {
-                                isPatron: true,
-                                patronTier: tier
-                            }).then(() => {
-                                console.log(user.email + " is now a patreon!");
-                                res.status(200).render('success.ejs', {message: "You are now a patron!"});
-                            });
-                        } else {
-                            res.status(400).render('errors.ejs', {code: 400, message: "You are a patron already!"});
-                        }
-                    } else {
-                        res.status(403).render('errors.ejs', {code: 403, message: "Email is not verified!"});
-                    }
-                } else {
-                    res.status(403).render('errors.ejs', {code: 403, message: "Last patreon payment was declined"});
-                }
-            } else {
-                res.status(403).render('errors.ejs', {code: 403, message: "Not an active patron"});
-            }
-        } else {
+        // the amount was less than $5
+        if (amount < 500) {
             res.status(403).render('errors.ejs', {code: 403, message: "Patron status is only allowed at $5 or more"});
+            return;
         }
+
+        // the user is not an active patron
+        if (patron_status !== 'active_patron') {
+            res.status(403).render('errors.ejs', {code: 403, message: "Not an active patron"});
+            return;
+        }
+
+        // the last transaction failed
+        if (last_charged_status !== 'paid') {
+            res.status(403).render('errors.ejs', {code: 403, message: "Last patreon payment was declined"});
+            return;
+        }
+
+        // the user has not verified the email attached to their at account
+        if (!user.isVerified) {
+            res.status(403).render('errors.ejs', {code: 403, message: "Email is not verified!"});
+            return;
+        }
+
+        const newTier = amount < 1000 ? 1 : 2;
+
+        // the user is already verified but linking patreon should be idempotent
+        if (user.isPatron && newTier === user.patronTier) {
+            res.status(200).render('success.ejs', {message: "You are a patron already!"});
+            return;
+        }
+
+        console.log("updating patron status for " + user.email);
+        app.service('users').patch(user._id, {
+            patreonID: patreonID,
+            isPatron: true,
+            patronTier: newTier
+        }).then(() => {
+            console.log(user.email + " is now a patron!");
+            res.status(200).render('success.ejs', {message: "You are now a patron!"});
+        }).catch(() => {
+            console.log("db error while saving patron status for " + user.email);
+            res.status(500).render('errors.ejs', {code: 500, message: "An error occurred while linking your account!"});
+        });
     }
 };
