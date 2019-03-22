@@ -86,13 +86,22 @@ module.exports.verify = function (app) {
                         tier = 2;
                     }
                     if(user.isVerified) {
-                        app.service('users').patch(user._id, {
-                            isPatron: true,
-                            patronTier: tier
-                        }).then(() => {
-                            console.log(user.email + " is now a patreon!");
-                            res.status(200).render('success.ejs', {message: "You are now a patron!"});
-                        });
+                        if(user.tier != patronTier) {
+                            app.service('users').patch(user._id, {
+                                patronTier: tier
+                            })
+                        }
+                        if(user.isPatron) {
+                            app.service('users').patch(user._id, {
+                                isPatron: true,
+                                patronTier: tier
+                            }).then(() => {
+                                console.log(user.email + " is now a patreon!");
+                                res.status(200).render('success.ejs', {message: "You are now a patron!"});
+                            });
+                        } else {
+                            res.status(400).render('errors.ejs', {code: 400, message: "You are a patron already!"});
+                        }
                     } else {
                         res.status(403).render('errors.ejs', {code: 403, message: "Email is not verified!"});
                     }
