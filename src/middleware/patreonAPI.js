@@ -64,24 +64,27 @@ module.exports.verify = function (app) {
         const data = res.locals.patronData;
         const patreonID = data.id;
         const amount = data.attributes.will_pay_amount_cents;
-        const patron_status = data.attributes.patron_status;
-        const last_charged_status = data.attributes.last_charge_status;
+        const patron_status = data.attributes.patron_status.toLowerCase();
+        const last_charged_status = data.attributes.last_charge_status.toLowerCase();
 
         // the amount was less than $5
         if (amount < 500) {
             res.status(403).render('errors.ejs', {code: 403, message: "Patron status is only allowed at $5 or more"});
+            //console.log("debug (amount): " + data.attributes);
             return;
         }
 
         // the user is not an active patron
         if (patron_status !== 'active_patron') {
             res.status(403).render('errors.ejs', {code: 403, message: "Not an active patron"});
+            //console.log("debug (patron_status): " + data.attributes);
             return;
         }
 
         // the last transaction failed
         if (last_charged_status !== 'paid') {
             res.status(403).render('errors.ejs', {code: 403, message: "Last patreon payment was declined"});
+            //console.log("debug (last_charged_status): " + data.attributes);
             return;
         }
 
