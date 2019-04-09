@@ -68,6 +68,13 @@ module.exports.all = function(app) {
 			query: { live: true }
 		}).then((users) => {
 			var total_viewers = 0;
+			var total_connections = 0;
+			request({
+				url: 'http://10.132.146.231/viewers',
+				json: true
+			}).then(function (json) {
+				total_connections = json.total_connections;
+			});
 			function api(callback) {
 				var jsonArray = [];
 				var number = 0;
@@ -112,10 +119,10 @@ module.exports.all = function(app) {
 			if(users.total != 0) {
 				api(function(data) {
 						data.sort(sortBy("viewers"));
-						res.json({stream_list: data, streams: users.total, total_viewers: total_viewers});
+						res.json({stream_list: data, streams: users.total, total_viewers: total_viewers, total_connections: total_connections});
 				});
 			} else {
-				res.json({stream_list: [], streams: users.total, total_viewers: total_viewers});
+				res.json({stream_list: [], streams: users.total, total_viewers: total_viewers, total_connections: total_connections});
 			}
 		})
 		.catch((e) => {
@@ -135,102 +142,5 @@ module.exports.changeTitle = function(app) {
 		}).catch((e) => {
 			res.status(500).send(e);
 		});
-	};
-};
-
-module.exports.edgeServerList = function(app) {
-	return function(req, res, next) {
-		request({
-			url: 'https://api.digitalocean.com/v2/droplets?tag_name=edge&page=1&per_page=200',
-			auth: {
-				'bearer': app.get('doAPIKey')
-			},
-			json: true
-		}).then(function (json) {
-			const droplets = json.droplets;
-
-			var nyc = [], sfo = [], tor = [], ams = [], fra = [], lon = [], blr = [], sgp = [], sfo_patreon = [], 
-				nyc_patreon = [], tor_patreon = [], ams_patreon = [], fra_patreon = [], lon_patreon = [], blr_patreon = [], sgp_patreon = [];
-
-			for(var i = 0; i < droplets.length; i++) {
-				const droplet = droplets[i];
-				const dropletName = droplet.name;
-				//if(await dropletAlive(dropletName)) {
-					const tags = droplet.tags;
-					if(!tags.includes("patreon")) {
-						if(tags.includes("nyc")) {
-							nyc.push(dropletName);
-						} else if (tags.includes("sfo")) {
-							sfo.push(dropletName)
-						} else if (tags.includes("tor")) {
-							tor.push(dropletName)
-						} else if (tags.includes("ams")) {
-							ams.push(dropletName)
-						} else if (tags.includes("fra")) {
-							fra.push(dropletName)
-						} else if (tags.includes("lon")) {
-							lon.push(dropletName)
-						} else if (tags.includes("blr")) {
-							blr.push(dropletName)
-						} else if (tags.includes("sgp")) {
-							sgp.push(dropletName)
-						}
-					} else {
-						if(tags.includes("nyc")) {
-							nyc_patreon.push(dropletName);
-						} else if (tags.includes("sfo")) {
-							sfo_patreon.push(dropletName)
-						} else if (tags.includes("tor")) {
-							tor_patreon.push(dropletName)
-						} else if (tags.includes("ams")) {
-							ams_patreon.push(dropletName)
-						} else if (tags.includes("fra")) {
-							fra_patreon.push(dropletName)
-						} else if (tags.includes("lon")) {
-							lon_patreon.push(dropletName)
-						} else if (tags.includes("blr")) {
-							blr_patreon.push(dropletName)
-						} else if (tags.includes("sgp")) {
-							sgp_patreon.push(dropletName)
-						}
-					}
-				}
-			//}
-			res.json({
-				regions: {
-					nyc: nyc,
-					nyc_patreon: nyc_patreon,
-					sfo: sfo,
-					sfo_patreon: sfo_patreon,
-					tor: tor,
-					tor_patreon: tor_patreon,
-					ams: ams,
-					ams_patreon: ams_patreon,
-					fra: fra,
-					fra_patreon: fra_patreon,
-					lon: lon,
-					lon_patreon, lon_patreon,
-					blr: blr,
-					blr_patreon: blr_patreon,
-					sgp: sgp,
-					sgp_patreon: sgp_patreon
-				}
-			});
-		}).catch(function (e) {
-			res.render('errors.ejs', {code: 403, message: e.message});
-		});
-		/*
-		async function dropletAlive(host) {
-			request
-			.get('https://' + host + '.angelthump.com/ping')
-			.on('response', function(response) {
-				console.log(response.statusCode);
-				if(response.statusCode == 200) {
-					return true;
-				} else {
-					return false;
-				}
-			})
-		}*/
 	};
 };

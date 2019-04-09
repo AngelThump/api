@@ -3,7 +3,6 @@ const admin = require('./admin');
 const transcode = require('./transcodeAPI');
 const patreon = require('./patreonAPI');
 const client = require('redis').createClient();
-const cache = require('apicache').middleware;
 const ingest = require('./ingest');
 const patreonWebhooks = require('./patreonWebhooks');
 const cookieParser = require('cookie-parser');
@@ -11,6 +10,7 @@ const { authenticate } = require('@feathersjs/authentication').express;
 const express = require('@feathersjs/express');
 const droplet = require('./dropletAPI');
 const userAPI = require('./userAPI');
+const edge = require('./edgeAPI');
 
 module.exports = function (app) {
   const limiter = require('express-limiter')(app, client);
@@ -33,7 +33,9 @@ module.exports = function (app) {
   app.post('/user/v1/title', limiter({lookup: 'headers.x-forwarded-for', total: 10, expire: 30 * 1000}), cookieParser(), authenticate('jwt'), userAPI.title(app));
   app.post('/user/v2/password', userAPI.checkStreamPassword(app));
 
-  app.get('/edges/v1', cache('5 seconds'), api.edgeServerList(app));
+  app.get('/edges/v1', edge.list(app));
+  app.post('/edges/v1/add', edge.add(app));
+  app.post('/edges/v1/delete', edge.delete(app));
 
   app.get('/admin', admin(app));
   app.post('/admin/v1/ban', admin.ban(app));
