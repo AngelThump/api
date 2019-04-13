@@ -28,8 +28,10 @@ module.exports.user = function(app) {
 				} else {
 					const username = user.username;
 					request({
-						url: 'http://10.132.146.231/viewers/' + username,
-						json: true
+						url: 'https://10.132.146.231:3030/viewers/' + username,
+						json: true,
+						insecure: true,
+						rejectUnauthorized: false
 					}).then(function (json) {
 						res.json({
 							username: user.username,
@@ -70,8 +72,10 @@ module.exports.all = function(app) {
 			var total_viewers = 0;
 			var total_connections = 0;
 			request({
-				url: 'http://10.132.146.231/viewers',
-				json: true
+				url: 'https://10.132.146.231:3030/viewers',
+				json: true,
+				insecure: true,
+				rejectUnauthorized: false
 			}).then(function (json) {
 				total_connections = json.total_connections;
 			});
@@ -84,8 +88,10 @@ module.exports.all = function(app) {
 						const username = user.username;
 
 						request({
-							url: 'http://10.132.146.231/viewers/' + username,
-							json: true
+							url: 'https://10.132.146.231:3030/viewers/' + username,
+							json: true,
+							insecure: true,
+							rejectUnauthorized: false
 						}).then(function (json) {
 							var jsonObject = {
 								username: username,
@@ -127,20 +133,6 @@ module.exports.all = function(app) {
 		})
 		.catch((e) => {
 			res.render('errors.ejs', {code: 403, message: e.message});
-		});
-	};
-};
-
-module.exports.changeTitle = function(app) {
-	return function(req, res, next) {
-		const user = req.user
-		const title = req.body.title;
-		app.service('users').patch(user._id, {
-			title: title
-		}).then(() => {
-			res.status(200).send("Changed " + user.username + "'s stream title to: " + title);
-		}).catch((e) => {
-			res.status(500).send(e);
 		});
 	};
 };
