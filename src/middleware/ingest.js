@@ -40,7 +40,8 @@ module.exports.stream = function(app) {
             app.service('users').patch(user._id, {
               live: true,
               ingestServer: ingestServer,
-              ip_address: req.body.addr
+              ip_address: req.body.addr,
+              streamCreatedAt: Date.now()
             }).then(() => {
               console.log(username + " is now live");
             }).catch((e) => {

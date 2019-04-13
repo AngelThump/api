@@ -120,7 +120,7 @@ module.exports.drop = function(app) {
           if(users.total > 0) {
             const user = users.data[0];
               request('https://' + user.ingestServer + '/control/drop/publisher?app=live&name=' + requested_username);
-              res.status(200).send(requested_username + " is now banned!");
+              res.status(200).send(requested_username + " has been dropped!");
           } else {
             res.status(404).send("user not found");
           }
