@@ -11,6 +11,12 @@ module.exports.user = function(app) {
 			if (users.total > 0) {
 				const user = users.data[0];
 				const posterEndpoint = app.get("spacesEndpoint") + "offline-screens/uploads/";
+				let poster;
+				if(!user.poster) {
+					poster = 'https://angelthump.sfo2.cdn.digitaloceanspaces.com/offline-screens/default_offline.jpg';
+				} else {
+					poster = posterEndpoint + user.poster;
+				}
 				if(!user.live) {
 					res.json({
 						username: user.username,
@@ -28,7 +34,7 @@ module.exports.user = function(app) {
 				} else {
 					const username = user.username;
 					request({
-						url: 'https://10.132.146.231:3030/viewers/' + username,
+						url: 'https://10.132.146.231:3031/viewers/' + username,
 						json: true,
 						insecure: true,
 						rejectUnauthorized: false
@@ -42,7 +48,7 @@ module.exports.user = function(app) {
 							transcode: user.transcode,
 							playerTranscodeReady: user.playerTranscodeReady,
 							banned: user.banned,
-							poster: posterEndpoint  + user.poster,
+							poster: poster,
 							patreon: {
 								patron: user.isPatron,
 								tier: user.patronTier
@@ -72,7 +78,7 @@ module.exports.all = function(app) {
 			var total_viewers = 0;
 			var total_connections = 0;
 			request({
-				url: 'https://10.132.146.231:3030/viewers',
+				url: 'https://10.132.146.231:3031/viewers',
 				json: true,
 				insecure: true,
 				rejectUnauthorized: false
@@ -88,7 +94,7 @@ module.exports.all = function(app) {
 						const username = user.username;
 
 						request({
-							url: 'https://10.132.146.231:3030/viewers/' + username,
+							url: 'https://10.132.146.231:3031/viewers/' + username,
 							json: true,
 							insecure: true,
 							rejectUnauthorized: false

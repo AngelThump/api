@@ -88,13 +88,12 @@ module.exports = function(app) {
 			})
 			.then((users) => {
 				if(users.total > 0) {
-					for (const user of users) {
-						app.service('users').patch(user._id, {
-							isPatron: false
-						}).then(() => {
-							console.log(user.email + " is now not a patron!");
-						});
-					}
+					const user = users.data[0];
+					app.service('users').patch(user._id, {
+						isPatron: false
+					}).then(() => {
+						console.log(user.email + " is now not a patron!");
+					});
 				} else {
 					console.log("nothing to delete")
 				}
@@ -158,13 +157,12 @@ module.exports = function(app) {
 				})
 				.then((users) => {
 					if(users.total > 0) {
-						for (const user of users) {
-							app.service('users').patch(user._id, {
-								isPatron: false
-							}).then(() => {
-								console.log(user.email + " is now not a patron!");
-							});
-						}
+						const user = users.data[0];
+						app.service('users').patch(user._id, {
+							isPatron: false
+						}).then(() => {
+							console.log(user.email + " is now not a patron!");
+						});
 					} else {
 						console.log("nothing to delete")
 					}

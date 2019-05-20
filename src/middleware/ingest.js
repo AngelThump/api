@@ -49,7 +49,9 @@ module.exports.stream = function(app) {
             });
 
             request({
-              url: 'http://10.132.146.231/admin',
+              url: 'https://10.132.146.231/admin',
+							insecure: true,
+							rejectUnauthorized: false,
               method: 'POST',
               auth: {
                 'bearer': app.get('transcodeKey')
@@ -99,8 +101,10 @@ module.exports.done = function(app) {
         });
 
         request({
-          url: 'http://10.132.146.231/admin',
+          url: 'https://10.132.146.231/admin',
           method: 'POST',
+          insecure: true,
+					rejectUnauthorized: false,
           auth: {
               'bearer': app.get('transcodeKey')
           },
@@ -154,7 +158,7 @@ module.exports.stats = function(app) {
         const rp = require('request-promise');
         const basicAuth = app.get('muxerAuth');
         rp({
-          url:"http://" + basicAuth + "@10.132.101.178:8080/stat",
+          url:"http://" + basicAuth + "@10.132.83.160:8080/stat",
           headers: {
             'Content-Type': 'text/xml'
           }

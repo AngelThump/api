@@ -38,7 +38,7 @@ module.exports.ban = function(app) {
                 res.status(200).send(requested_username + " is now banned!");
               }).catch((e) => {
                 console.error(e);
-              });;
+              });
             } else {
               res.status(400).send("user is already banned");
             }
@@ -49,7 +49,9 @@ module.exports.ban = function(app) {
           console.error(e);
         });
         request.post({
-          url: 'http://10.132.146.231/admin',
+          url: 'https://10.132.146.231/admin',
+          insecure: true,
+					rejectUnauthorized: false,
           headers: {
             'Authorization': 'Bearer ' + apiKey
           },

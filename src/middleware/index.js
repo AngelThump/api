@@ -2,7 +2,7 @@ const api = require('./api');
 const admin = require('./admin');
 const transcode = require('./transcodeAPI');
 const patreon = require('./patreonAPI');
-const client = require('redis').createClient();
+const redisClient = require('redis').createClient();
 const ingest = require('./ingest');
 const patreonWebhooks = require('./patreonWebhooks');
 const cookieParser = require('cookie-parser');
@@ -11,9 +11,12 @@ const express = require('@feathersjs/express');
 const droplet = require('./dropletAPI');
 const userAPI = require('./userAPI');
 const edge = require('./edgeAPI');
+const edgeV2 = require('./edgeAPIV2');
+const apicache = require('apicache');
 
 module.exports = function (app) {
-  const limiter = require('express-limiter')(app, client);
+  const limiter = require('express-limiter')(app, redisClient);
+  const redisAPICache = apicache.options({ redisClient: redisClient }).middleware;
   /*
   limiter({
     path: '*',
@@ -25,17 +28,24 @@ module.exports = function (app) {
       next({ message: 'Rate limit exceeded', code: 429 })
     }
   });*/
+
+
   app.set('view engine', 'ejs');
   app.set('views', 'public');
   
-  app.get('/v1', limiter({lookup: 'headers.x-forwarded-for', total: 300, expire: 60 * 1000}), api.all(app));
-  app.get('/v1/:username', limiter({lookup: 'headers.x-forwarded-for', total: 300, expire: 60 * 1000}), api.user(app));
+  app.get('/v1', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), api.all(app));
+  app.get('/v1/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('5 seconds'), api.user(app));
   app.post('/user/v1/title', limiter({lookup: 'headers.x-forwarded-for', total: 10, expire: 30 * 1000}), cookieParser(), authenticate('jwt'), userAPI.title(app));
   app.post('/user/v2/password', userAPI.checkStreamPassword(app));
 
   app.get('/edges/v1', edge.list(app));
   app.post('/edges/v1/add', edge.add(app));
-  app.post('/edges/v1/delete', edge.delete(app));
+  app.delete('/edges/v1/remove', edge.remove(app));
+
+  app.get('/edges/v2', edgeV2.list(app));
+  app.post('/edges/v2/add', edgeV2.add(app));
+  app.delete('/edges/v2/remove', edgeV2.remove(app));
+  app.put('/edges/v2/status', edgeV2.postStatus(app));
 
   app.get('/admin', admin(app));
   app.post('/admin/v1/ban', admin.ban(app));

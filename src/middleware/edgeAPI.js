@@ -53,9 +53,9 @@ module.exports.add = function(app) {
 	};
 };
 
-module.exports.delete = function(app) {
+module.exports.remove = function(app) {
 	return function(req, res, next) {
-		  
+
         if(!req.headers['authorization']) {
 			res.status(403).send('no key');
 			return;
@@ -68,17 +68,27 @@ module.exports.delete = function(app) {
 			return;
         }
 
-        setTimeout(() => {
+        if(!req.body.hostname && !req.body.region) {
+			res.status(400).send('bad request');
+			return;
+		}
+
+		setTimeout(() => {
 			if(!res.headersSent) {
 				res.status(200).send('ok');
 			}
 		}, 1);
-
-		fs.readFile(path.join(__dirname, '../../config/edges-default.json'), (err, data) => {  
+		
+        fs.readFile(path.join(__dirname, '../../config/edges.json'), (err, data) => {  
 			if (err) console.log(err);
-			let defaultList = JSON.parse(data);
+			let list = JSON.parse(data);
+			let index = list.regions[req.body.region].indexOf(req.body.hostname);
+			if (index > -1) {
+				list.regions[req.body.region].splice(index, 1);
+			}
+			console.log("deleted " + req.body.hostname + " from the list");
 
-			fs.writeFile(path.join(__dirname, '../../config/edges.json'), JSON.stringify(defaultList), 'utf-8', function(err) {
+			fs.writeFile(path.join(__dirname, '../../config/edges.json'), JSON.stringify(list), 'utf-8', function(err) {
 				if (err) {
 					console.log(err);
 				}
