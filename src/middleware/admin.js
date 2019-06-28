@@ -81,18 +81,21 @@ module.exports.ban = function(app) {
           request('https://' + server + '-ingest.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
         }
 
-        request.post({
-          url: 'https://10.132.146.231/admin',
-          insecure: true,
-          rejectUnauthorized: false,
-          headers: {
-            'Authorization': 'Bearer ' + apiKey
-          },
-          json: {
-            username: requested_username,
-            action: 'reload'
-          }
-        });
+        setTimeout(()=> {
+          request.post({
+            url: 'https://10.132.146.231/admin',
+            insecure: true,
+            rejectUnauthorized: false,
+            headers: {
+              'Authorization': 'Bearer ' + apiKey
+            },
+            json: {
+              username: requested_username,
+              action: 'reload'
+            }
+          });
+        }, 2000);
+        
         res.status(200).send(requested_username + " is now banned!");
       }).catch((e) => {
         console.error(e);
