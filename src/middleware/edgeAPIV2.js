@@ -27,10 +27,10 @@ module.exports.add = function(app) {
 			return;
         }
 
-        if(!req.body.hostname && !req.body.region) {
+        if(!req.body.hostname || !req.body.region) {
 			res.status(400).send('bad request');
 			return;
-        }
+		}
 
 		setTimeout(() => {
 			if(!res.headersSent) {
@@ -68,7 +68,7 @@ module.exports.remove = function(app) {
 			return;
         }
 
-        if(!req.body.hostname && !req.body.region) {
+        if(!req.body.hostname || !req.body.region) {
 			res.status(400).send('bad request');
 			return;
 		}
@@ -114,7 +114,7 @@ module.exports.postStatus = function(app) {
 			return;
         }
 
-        if(!req.body.hostname && !req.body.status && !req.body.region) {
+        if(!req.body.hostname || !req.body.status || !req.body.region) {
 			res.status(400).send('bad request');
 			return;
         }

@@ -19,7 +19,6 @@ module.exports = function(app) {
     isPatron: {type: Boolean},
     patronTier: {type: Number},
     ingestServer: {type: String},
-    ip_address: {type: Array, 'default': []},
     ingest: {type: Object, 'default': {live: false}},
     bans: {type: Array, 'default': []}
   });

@@ -41,7 +41,6 @@ module.exports.stream = function(app) {
             if(!ingest) {
               ingest = {
                 server: "",
-                ip_addresses: [req.body.addr],
                 live: false,
                 streamCreatedAt: "",
                 streamUpdatedAt: "",
@@ -50,15 +49,8 @@ module.exports.stream = function(app) {
               }
             }
 
-            let ips = ingest.ip_addresses;
-            let ip = req.body.addr.toString();
-            if(!ips.includes(ip)) {
-              ips.push(ip);
-            }
-
             let ingestServer = req.body.tcurl;
             ingest.server = ingestServer.substring(ingestServer.indexOf("rtmp://") + 7, ingestServer.indexOf(":1935"));
-            ingest.ip_addresses = ips;
             ingest.live = true;
             ingest.streamCreatedAt = new Date().toISOString();
 
