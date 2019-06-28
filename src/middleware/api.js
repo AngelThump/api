@@ -21,6 +21,7 @@ module.exports.user = function(app) {
 					res.json({
 						username: user.username,
 						banned: user.banned,
+						bans: user.bans,
 						poster: posterEndpoint + user.poster,
 						patreon: {
 							patron: user.isPatron,
@@ -48,6 +49,7 @@ module.exports.user = function(app) {
 							transcode: user.transcode,
 							playerTranscodeReady: user.playerTranscodeReady,
 							banned: user.banned,
+							bans: user.bans,
 							poster: poster,
 							patreon: {
 								patron: user.isPatron,
@@ -55,8 +57,8 @@ module.exports.user = function(app) {
 							},
 							partner: user.partner,
 							thumbnail: `https://thumbnail.angelthump.com/thumbnails/${user.username}.jpeg`,
-							created_at: user.streamCreatedAt,
-						});
+							created_at: user.ingest.streamCreatedAt,
+						})
 					});
 				}
 			} else {
@@ -72,8 +74,13 @@ module.exports.user = function(app) {
 
 module.exports.all = function(app) {
 	return function(req, res, next) {
+		//TODO:need to query all, not a finite number.
 		app.service('users').find({
-			query: { live: true }
+			query: { live: true },
+			paginate: {
+				default: 500,
+				max: 600
+			}
 		}).then((users) => {
 			var total_viewers = 0;
 			var total_connections = 0;

@@ -13,13 +13,15 @@ module.exports = function(app) {
     playerTranscodeReady: {type:Boolean, 'default': false},
     title: {type: String},
     live: {type: Boolean, 'default': false},
-    streamCreatedAt: {type: Date, 'default': Date.now },
-    streamUpdatedAt: {type: Date, 'default': Date.now },
+    streamCreatedAt: {type: Date, 'default': new Date(null) },
+    streamUpdatedAt: {type: Date, 'default': new Date(null) },
     patreonID: {type: String},
     isPatron: {type: Boolean},
     patronTier: {type: Number},
     ingestServer: {type: String},
-    ip_address: {type: String}
+    ip_address: {type: Array, 'default': []},
+    ingest: {type: Object, 'default': {live: false}},
+    bans: {type: Array, 'default': []}
   });
 
   return mongooseClient.model('users', users);

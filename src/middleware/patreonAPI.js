@@ -34,15 +34,19 @@ module.exports = function (app) {
                 json: true 
             }).then(function(rawJson) {
                 let found = false;
-                for(const included of rawJson.included) {
-                    if(included.relationships) {
-                        if(campaignID == included.relationships.campaign.data.id) {
-                            found = true;
-                            res.locals.patronData = included;
-                            next();
-                            break;
+                if(rawJson.included && typeof rawJson.included[Symbol.iterator] === 'function') {
+                    for(const included of rawJson.included) {
+                        if(included.relationships) {
+                            if(campaignID == included.relationships.campaign.data.id) {
+                                found = true;
+                                res.locals.patronData = included;
+                                next();
+                                break;
+                            }
                         }
                     }
+                } else {
+                    console.log(rawJson);
                 }
                 if(!found) {
                     res.status(403).render('errors.ejs', {code: 403, message: "not a patron"});
@@ -52,7 +56,7 @@ module.exports = function (app) {
             })
         })
         .catch(function (err) {
-            res.status(err.statusCode).render('error.ejs', {code: err.statusCode, message: "An error occurred while linking your account!"});
+            res.status(err.statusCode).render('errors.ejs', {code: err.statusCode, message: "An error occurred while linking your account!"});
             console.error(err.message);
         });
     }

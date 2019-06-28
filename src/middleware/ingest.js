@@ -35,13 +35,36 @@ module.exports.stream = function(app) {
         if(!user.banned && user.isVerified) {
             const username = user.username;
             res.redirect(username);
-            var ingestServer = req.body.tcurl;
-            ingestServer = ingestServer.substring(ingestServer.indexOf("rtmp://") + 7, ingestServer.indexOf(":1935"));
+
+            let ingest = user.ingest;
+
+            if(!ingest) {
+              ingest = {
+                server: "",
+                ip_addresses: [req.body.addr],
+                live: false,
+                streamCreatedAt: "",
+                streamUpdatedAt: "",
+                transcode: false,
+                playerTranscodeReady: false
+              }
+            }
+
+            let ips = ingest.ip_addresses;
+            let ip = req.body.addr.toString();
+            if(!ips.includes(ip)) {
+              ips.push(ip);
+            }
+
+            let ingestServer = req.body.tcurl;
+            ingest.server = ingestServer.substring(ingestServer.indexOf("rtmp://") + 7, ingestServer.indexOf(":1935"));
+            ingest.ip_addresses = ips;
+            ingest.live = true;
+            ingest.streamCreatedAt = new Date().toISOString();
+
             app.service('users').patch(user._id, {
-              live: true,
-              ingestServer: ingestServer,
-              ip_address: req.body.addr,
-              streamCreatedAt: Date.now()
+              ingest: ingest,
+              live: true
             }).then(() => {
               console.log(username + " is now live");
             }).catch((e) => {
@@ -90,7 +113,14 @@ module.exports.done = function(app) {
   		if (users.total > 0) {
         const user = users.data[0];
         const username = user.username;
+
+        let ingest = user.ingest;
+        ingest.live = false;
+        ingest.transcode = false;
+        ingest.playerTranscodeReady = false;
+
         app.service('users').patch(user._id, {
+          ingest: ingest,
           live: false,
           transcode: false,
           playerTranscodeReady: false
@@ -135,8 +165,12 @@ module.exports.update = function(app) {
   		if (users.total > 0) {
         const user = users.data[0];
         const username = user.username;
+
+        let ingest = user.ingest;
+        ingest.streamUpdatedAt = new Date().toISOString();
+
         app.service('users').patch(user._id, {
-          streamUpdatedAt: Date.now()
+          ingest: ingest
         }).then(() => {
           console.log(username + " updated!");
         }).catch((e) => {
