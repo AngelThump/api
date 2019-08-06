@@ -49,8 +49,7 @@ module.exports.stream = function(app) {
               }
             }
 
-            let ingestServer = req.body.tcurl;
-            ingest.server = ingestServer.substring(ingestServer.indexOf("rtmp://") + 7, ingestServer.indexOf(":1935"));
+            ingest.server = req.query.server;
             ingest.live = true;
             ingest.streamCreatedAt = new Date().toISOString();
 

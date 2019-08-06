@@ -139,7 +139,7 @@ module.exports.postStatus = function(app) {
                                 console.log(err);
                             }
                             if(req.body.status === 'down') {
-                                console.log(`updated ${req.body.hostname} to ${req.body.status}`);
+                                console.log(`${req.body.hostname} is ${req.body.status}`);
                             }
                         });
                     }

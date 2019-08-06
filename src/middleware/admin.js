@@ -75,11 +75,12 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(() => {
-        //request('https://' + user.ingestServer + '/control/drop/publisher?app=live&name=' + requested_username);
+        request('https://' + user.ingest.server + 'angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+        /*
         const servers = app.get("ingestServers");
         for(let server of servers) {
           request('https://' + server + '-ingest.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
-        }
+        }*/
 
         setTimeout(()=> {
           request.post({
@@ -94,7 +95,7 @@ module.exports.ban = function(app) {
               action: 'reload'
             }
           });
-        }, 2000);
+        }, 5000);
         
         res.status(200).send(requested_username + " is now banned!");
       }).catch((e) => {
@@ -170,11 +171,26 @@ module.exports.drop = function(app) {
     }
 
     const requested_username = req.body.username;
+
+    app.service('users').find({
+      query: { username: requested_username }
+    }).then((users) => {
+      if(!(users.total > 0)) {
+        res.status(404).send("user not found");
+        return;
+      }
+
+      request('https://' + user.ingest.server + 'angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+      res.status(200).send(requested_username + " has been dropped!");
+    }).catch((e) => {
+      console.error(e);
+    });
+    /*
     const servers = app.get("ingestServers");
     for(let server of servers) {
       request('https://' + server + '-ingest.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
     }
 
-    res.status(200).send(requested_username + " has been dropped!");
+    res.status(200).send(requested_username + " has been dropped!");*/
   }
 }
