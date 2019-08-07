@@ -75,7 +75,7 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(() => {
-        request('https://' + user.ingest.server + 'angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+        request('https://' + user.ingest.server + '.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
         /*
         const servers = app.get("ingestServers");
         for(let server of servers) {
@@ -175,16 +175,16 @@ module.exports.drop = function(app) {
     app.service('users').find({
       query: { username: requested_username }
     }).then((users) => {
-      if(!(users.total > 0)) {
-        res.status(404).send("user not found");
-        return;
-      }
-
-      request('https://' + user.ingest.server + 'angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
-      res.status(200).send(requested_username + " has been dropped!");
-    }).catch((e) => {
-      console.error(e);
-    });
+        if(!(users.total > 0)) {
+          res.status(404).send("user not found");
+          return;
+        }
+        const user = users.data[0];
+        request('https://' + user.ingest.server + '.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+        res.status(200).send(requested_username + " has been dropped!");
+      }).catch((e) => {
+        console.error(e);
+      });
     /*
     const servers = app.get("ingestServers");
     for(let server of servers) {
