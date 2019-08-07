@@ -75,7 +75,7 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(() => {
-        request('https://' + user.ingest.server + '.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+        request(`https://${app.get('muxerAuth')}@${user.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`);
         /*
         const servers = app.get("ingestServers");
         for(let server of servers) {
@@ -180,7 +180,7 @@ module.exports.drop = function(app) {
           return;
         }
         const user = users.data[0];
-        request('https://' + user.ingest.server + '.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+        request(`https://${app.get('muxerAuth')}@${user.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`);
         res.status(200).send(requested_username + " has been dropped!");
       }).catch((e) => {
         console.error(e);
