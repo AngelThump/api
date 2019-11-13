@@ -33,7 +33,9 @@ app.configure(configuration());
 app.use(helmet({
     hsts: false
 }));
-app.use(cors());
+app.use(cors({
+    exposedHeaders: ['X-Total-Count'],
+}));
 app.use(compress());
 var rawBodySaver = function (req, res, buf, encoding) {
     if (buf && buf.length) {

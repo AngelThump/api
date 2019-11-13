@@ -1,42 +1,23 @@
+const { discard , iff, isProvider, disallow } = require('feathers-hooks-common');
+const { setField } = require('feathers-authentication-hooks');
+const { authenticate } = require('@feathersjs/authentication');
+const { protect } = require('@feathersjs/authentication-local').hooks;
 
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const { restrictToOwner } = require('feathers-authentication-hooks');
-const { hashPassword, protect } = require('@feathersjs/authentication-local').hooks;
-const commonHooks = require('feathers-hooks-common');
-
-const restrict = [
-  authenticate('jwt'),
-  restrictToOwner({
-    idField: '_id',
-    ownerField: '_id'
+const restrictToOwner = [
+  setField({
+    from: 'params.user._id',
+    as: 'params.query._id'
   })
 ];
-
 module.exports = {
   before: {
     all: [],
-    find: [ authenticate('jwt') ],
-    get: [ ...restrict ],
-    create: [ hashPassword(), commonHooks.lowerCase('email','username') ],
-    update: [ ...restrict, commonHooks.disallow('external'), commonHooks.lowerCase('email','username') ],
-    patch: [ ...restrict, commonHooks.lowerCase('email','username'), 
-    commonHooks.iff(
-      commonHooks.isProvider('external'),
-        commonHooks.preventChanges(true,
-          'email',
-          'isVerified',
-          'verifyToken',
-          'verifyShortToken',
-          'verifyExpires',
-          'verifyChanges',
-          'resetToken',
-          'resetShortToken',
-          'resetExpires',
-        ),
-        hashPassword(),
-        authenticate('jwt')
-      )],
-    remove: [ ...restrict ]
+    find: [ authenticate('jwt'), ...restrictToOwner ],
+    get: [ ...restrictToOwner ],
+    create: [],
+    update: [ authenticate('jwt'), ...restrictToOwner, disallow('external') ],
+    patch: [ authenticate('jwt'), ...restrictToOwner ],
+    remove: [ authenticate('jwt'), ...restrictToOwner ]
   },
 
   after: {
@@ -46,17 +27,9 @@ module.exports = {
     find: [],
     get: [],
     create: [],
-    update: [
-    commonHooks.when(
-        hook => hook.params.provider,
-        commonHooks.discard('streamkey')
-      )],
+    update: [iff(isProvider('external'), discard('streamkey', 'email', 'verifyToken', 'verifyExpires', 'verifyChanges', 'resetToken', 'resetExpires', 'streamPassword', 'ingestServer', 'bans', 'ingest')),],
     patch: [],
-    remove: [
-    commonHooks.when(
-        hook => hook.params.provider,
-        commonHooks.discard('streamkey')
-      )]
+    remove: [iff(isProvider('external'), discard('streamkey', 'email', 'verifyToken', 'verifyExpires', 'verifyChanges', 'resetToken', 'resetExpires', 'streamPassword', 'ingestServer', 'bans', 'ingest')),]
   },
 
   error: {

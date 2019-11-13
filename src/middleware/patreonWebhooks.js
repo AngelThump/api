@@ -39,7 +39,7 @@ module.exports = function(app) {
 							}
 						}
 
-						console.log(includedEmail + " || id: " + id + " to be created");
+						//console.log(includedEmail + " || id: " + id + " to be created");
 
 						app.service('users').find({
 							query: { email: includedEmail }
@@ -58,10 +58,10 @@ module.exports = function(app) {
 									isPatron: true,
                                     patronTier: tier
 								}).then(() => {
-									console.log(user.email + " is now a patron!");
+									//console.log(user.email + " is now a patron!");
 								});
 							} else {
-								console.log(includedEmail + " may not be verified or is banned or not found in system!");
+								//console.log(includedEmail + " may not be verified or is banned or not found in system!");
 							}
 						})
 						.catch(function(error){
@@ -81,7 +81,7 @@ module.exports = function(app) {
 				}
 			}
 
-			console.log(includedEmail + " || id: " + id + " to be deleted");
+			//console.log(includedEmail + " || id: " + id + " to be deleted");
 
 			app.service('users').find({
 				query: { patreonID: id}
@@ -92,10 +92,10 @@ module.exports = function(app) {
 					app.service('users').patch(user._id, {
 						isPatron: false
 					}).then(() => {
-						console.log(user.email + " is now not a patron!");
+						//console.log(user.email + " is now not a patron!");
 					});
 				} else {
-					console.log("nothing to delete")
+					//console.log("nothing to delete")
 				}
 			})
 			.catch(function(error){
@@ -121,7 +121,7 @@ module.exports = function(app) {
 							}
 						}
 
-						console.log(includedEmail + " || id: " + id + " to be updated or created");
+						//console.log(includedEmail + " || id: " + id + " to be updated or created");
 
 						app.service('users').find({
 							query: { patreonID: id}
@@ -140,10 +140,10 @@ module.exports = function(app) {
 									isPatron: true,
                                     patronTier: tier
 								}).then(() => {
-									console.log(user.email + " is now a patron!");
+									//console.log(user.email + " is now a patron!");
 								});
 							} else {
-								console.log(includedEmail + " may not be verified or is banned or not found in system!");
+								//console.log(includedEmail + " may not be verified or is banned or not found in system!");
 							}
 						})
 						.catch(function(error){
@@ -161,10 +161,10 @@ module.exports = function(app) {
 						app.service('users').patch(user._id, {
 							isPatron: false
 						}).then(() => {
-							console.log(user.email + " is now not a patron!");
+							//console.log(user.email + " is now not a patron!");
 						});
 					} else {
-						console.log("nothing to delete")
+						//console.log("nothing to delete")
 					}
 				}).catch(function(error){
 					console.log(error);

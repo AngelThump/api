@@ -21,7 +21,6 @@ module.exports.user = function(app) {
 					res.json({
 						username: user.username,
 						banned: user.banned,
-						bans: user.bans,
 						poster: posterEndpoint + user.poster,
 						patreon: {
 							patron: user.isPatron,
@@ -49,7 +48,6 @@ module.exports.user = function(app) {
 							transcode: user.transcode,
 							playerTranscodeReady: user.playerTranscodeReady,
 							banned: user.banned,
-							bans: user.bans,
 							poster: poster,
 							patreon: {
 								patron: user.isPatron,
@@ -134,7 +132,8 @@ module.exports.all = function(app) {
 					return 0;
 				}
 			}
-				
+			
+			res.set('X-Total-Count', users.total);
 			if(users.total != 0) {
 				api(function(data) {
 						data.sort(sortBy("viewers"));
