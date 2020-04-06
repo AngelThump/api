@@ -47,12 +47,16 @@ module.exports = function(app) {
 						.then((users) => {
 							const user = users.data[0];
 							if (users.total > 0  && user.isVerified) {
-								var tier;
+								let tier;
+
 								if(amount >= 500 && amount < 1000) {
 									tier = 1;
-								} else {
-									tier = 2;
+								} else if (amount >= 1000 && amount < 5000) {
+									tier = 2
+								} else if (amount >= 5000) {
+									tier = 3;
 								}
+
 								app.service('users').patch(user._id, {
 									patreonID: id,
 									isPatron: true,
@@ -129,11 +133,14 @@ module.exports = function(app) {
 						.then((users) => {
 							const user = users.data[0];
 							if (users.total > 0  && user.isVerified) {
-								var tier;
+								let tier;
+
 								if(amount >= 500 && amount < 1000) {
 									tier = 1;
-								} else {
-									tier = 2;
+								} else if (amount >= 1000 && amount < 5000) {
+									tier = 2
+								} else if (amount >= 5000) {
+									tier = 3;
 								}
 								app.service('users').patch(user._id, {
 									patreonID: id,

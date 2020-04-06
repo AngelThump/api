@@ -105,7 +105,15 @@ module.exports.verify = function (app) {
             return res.status(200).json({statusCode: 403, message: "Email is not verified!"});
         }
 
-        const newTier = amount < 1000 ? 1 : 2;
+        let newTier;
+
+        if(amount >= 500 && amount < 1000) {
+            newTier = 1;
+        } else if (amount >= 1000 && amount < 5000) {
+            newTier = 2
+        } else if (amount >= 5000) {
+            newTier = 3;
+        }
 
         // the user is already verified but linking patreon should be idempotent
         if (user.isPatron && newTier === user.patronTier) {

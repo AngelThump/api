@@ -55,11 +55,10 @@ module.exports = function (app) {
   app.post('/v2/patreon/verify', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 60 * 1000}), cookieParser(), authenticate('jwt'), patreon.verify(app));
   app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
-  app.get('/ingest/v1/stats', ingest.stats(app));
-  //app.get('/ingest/v1', ingest(app)); // list of ingest servers
-  app.post('/ingest/v1/live', ingest.stream(app));
-  app.post('/ingest/v1/done', ingest.done(app));
-  //app.post('/ingest/v1/update', ingest.update(app));
+  //app.get('v1/ingest', ingest(app)); // list of ingest servers
+  app.post('/v2/ingest/stats', ingest.stats(app));
+  app.post('/v2/ingest/live', ingest.stream(app));
+  app.post('/v2/ingest/done', ingest.done(app));
 
   app.use(express.errorHandler({
     html: function(error, req, res, next) {

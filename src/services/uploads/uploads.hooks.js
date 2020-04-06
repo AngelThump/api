@@ -6,17 +6,17 @@ module.exports = {
     find: [],
     get: [],
     create: [
-      function(hook) {
-          hook.params.s3 = { 
-            ACL: 'public-read',
-            CacheControl: 'max-age=31536000'
-          };
-          if (!hook.data.uri && hook.params.file){
-              const file = hook.params.file;
-              const uri = dauria.getBase64DataURI(file.buffer, file.mimetype);
-              hook.data = {uri: uri};
-          }
+      context => {
+        context.params.s3 = { 
+          ACL: 'public-read',
+          CacheControl: 'max-age=31536000'
+        };
+        if (!context.data.uri && context.params.file){
+            const file = context.params.file;
+            const uri = dauria.getBase64DataURI(file.buffer, file.mimetype);
+            context.data = {uri: uri};
         }
+      }
     ],
     update: [],
     patch: [],
@@ -27,7 +27,8 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [],
+    create: [
+    ],
     update: [],
     patch: [],
     remove: []

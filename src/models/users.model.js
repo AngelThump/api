@@ -8,6 +8,7 @@ module.exports = function (app) {
     email: {type: String, unique: true, lowercase: true},
     username: { type: String, required: true, unique: true, uniqueCaseInsensitive: true},
     password: { type: String },
+    permissions: {type: Array},
     streamkey: { type: String, unique: true},
     isVerified: { type: Boolean, default: false },
     verifyToken: { type: String },
@@ -30,6 +31,8 @@ module.exports = function (app) {
     isPatron: {type: Boolean, 'default': false},
     isPatreonLinked: {type: Boolean, 'default': false},
     patreon: {type: Object},
+    isTwitchLinked: {type: Boolean, 'default': false},
+    twitch: {type: Object},
     ingestServer: {type: String},
     ingest: {type: Object, 'default': {live: false}},
     bans: {type: Array, 'default': []}
