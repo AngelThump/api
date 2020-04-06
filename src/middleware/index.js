@@ -1,8 +1,7 @@
 const api = require('./api');
 const admin = require('./admin');
 const transcode = require('./transcodeAPI');
-const patreon = require('./patreonAPI');
-const redisClient = require('redis').createClient();
+//const redisClient = require('redis').createClient();
 const ingest = require('./ingest');
 const patreonWebhooks = require('./patreonWebhooks');
 const cookieParser = require('cookie-parser');
@@ -10,12 +9,12 @@ const express = require('@feathersjs/express');
 const { authenticate } = require('@feathersjs/express');
 const droplet = require('./dropletAPI');
 const userAPI = require('./userAPI');
-const apicache = require('apicache');
+//const apicache = require('apicache');
 const streams = require('./streams');
 
 module.exports = function (app) {
-  const limiter = require('express-limiter')(app, redisClient);
-  const redisAPICache = apicache.options({ redisClient: redisClient }).middleware;
+  //const limiter = require('express-limiter')(app, redisClient);
+  //const redisAPICache = apicache.options({ redisClient: redisClient }).middleware;
   /*
   limiter({
     path: '*',
@@ -33,11 +32,11 @@ module.exports = function (app) {
   app.set('views', 'public');
   
   //v2 api change all to follow /v2 endpoint spec
-  app.get('/v1', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), api.all(app));
-  app.get('/v2/streams', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('1 seconds'), streams.all(app));
-  app.get('/v1/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('5 seconds'), api.user(app));
+  app.get('/v1', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ api.all(app));
+  app.get('/v2/streams', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('1 seconds'),*/ streams.all(app));
+  app.get('/v1/:username', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('5 seconds'),*/ api.user(app));
   //app.get('/v2/user/:username')
-  app.post('/user/v1/title', limiter({lookup: 'headers.x-forwarded-for', total: 10, expire: 30 * 1000}), cookieParser(), authenticate('jwt'), userAPI.title(app));
+  app.post('/user/v1/title', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ cookieParser(), authenticate('jwt'), userAPI.title(app));
   app.post('/user/v2/password', userAPI.checkStreamPassword(app));
   //app.post('/v2/user/title')
   //app.post('/v2/user/password')
@@ -52,12 +51,11 @@ module.exports = function (app) {
   app.post('/droplet/v1', droplet(app));
   app.get('/droplet/v1', droplet.list(app))
 
-  app.post('/v2/patreon/verify', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 60 * 1000}), cookieParser(), authenticate('jwt'), patreon.verify(app));
   app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
   //app.get('v1/ingest', ingest(app)); // list of ingest servers
   app.post('/v2/ingest/stats', ingest.stats(app));
-  app.post('/v2/ingest/live', ingest.stream(app));
+  app.post('/v2/ingest', ingest.stream(app));
   app.post('/v2/ingest/done', ingest.done(app));
 
   app.use(express.errorHandler({

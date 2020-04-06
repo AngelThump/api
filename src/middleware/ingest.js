@@ -23,10 +23,10 @@ process.on('unhandledRejection', function(reason, p){
   // application specific logging here
 });
 
-const fetch = require('node-fetch');
+const fetch = require('axios');
 
 module.exports.stream = function(app) {
-  return function(req, res, next) {
+  return async function(req, res, next) {
     if(!req.body.name) {
       return res.status(400).json({
         "error": true,
@@ -35,73 +35,57 @@ module.exports.stream = function(app) {
     }
 
     const streamkey = req.body.name;
+    
+    console.log(req.body);
 
-    app.service('users').find({
+    /*
+    const users = await app.service('users').find({
       query: { streamkey: streamkey }
+    }).then(users => {
+      return users
+    }).catch(e => {
+      console.error(e);
+      return res.status(500).json({
+        "error": true,
+        "errorMSG": "something went terribly wrong in users service"
+      })
     })
-    .then((users) => {
 
-      if(users.total == 0) {
-        return res.status(500).json({
-          "error": true,
-          "errorMSG": "no users found"
-        });
-      }
-
-      const user = users.data[0];
-
-      if(user.banned) {
-        return res.status(403).json({
-          "error": true,
-          "errorMSG": "you are banned"
-        });
-      }
-
-      if(!user.isVerified) {
-        return res.status(403).json({
-          "error": true,
-          "errorMSG": "email not verified"
-        });
-      }
-
-      //good to go
-
-      const username = user.username;
-      res.redirect(username);
-
-      //post to mux
-      const server = `rtmp://${req.query.server}.angelthump.com/live`;
-      mux(server,username,app.get('muxerApiKey'));
-      updateLive(username, true, app.get('transcodeKey'));
-
-      let ingest = user.ingest;
-
-      if(!ingest) {
-        ingest = {
-          server: "",
-          live: false,
-          streamCreatedAt: "",
-          streamUpdatedAt: "",
-          transcode: false,
-          playerTranscodeReady: false
-        }
-      }
-
-      ingest.server = req.query.server;
-      ingest.live = true;
-      ingest.streamCreatedAt = new Date().toISOString();
-
-      app.service('users').patch(user._id, {
-        ingest: ingest,
-        live: true
-      }).then(() => {
-        console.log(username + " is now live");
-      }).catch((e) => {
-        console.error(e);
+    if(users.total == 0) {
+      return res.status(500).json({
+        "error": true,
+        "errorMSG": "no users found"
       });
-    })
-    // On errors, just call our error middleware
-    .catch(() => res.status(403).send('Forbidden'));
+    }
+
+    const user = users[0];
+
+    if(user.banned) {
+      return res.status(403).json({
+        "error": true,
+        "errorMSG": "you are banned"
+      });
+    }
+
+    if(!user.isVerified) {
+      return res.status(403).json({
+        "error": true,
+        "errorMSG": "email not verified"
+      });
+    }
+
+    const username = user.username;*/
+    //res.redirect(username);
+    /*
+    app.service('streams').create({
+      ingest: {
+        server: req.query.server
+      }
+      ip_address: addr,
+      transcoding: false,
+      user: user
+    })*/
+    
   };
 };
 
