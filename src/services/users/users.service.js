@@ -4,10 +4,6 @@ const rest = require('@feathersjs/rest-client');
 const axios = require('axios');
 
 module.exports = function (app) {
-  const options = {
-    paginate: app.get('paginate')
-  };
-
   const client = rest(app.get('sso')).axios(axios, {
       headers: {
           "x-api-key": app.get('x-api-key')

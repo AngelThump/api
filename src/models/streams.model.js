@@ -7,6 +7,14 @@ module.exports = function (app) {
   const mongooseClient = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
+    ingest: {type: Object, required: true},
+    ip_address: {type: String, required: true},
+    transcoding: {type: Boolean, required: true},
+    type: {type: String},
+    title: {type: String},
+    viewer_count: {type: Number},
+    thumbnail_url: {type: String},
+    stream_key: {type: String, required: true},
     user: {type: Object, required: true}
   }, {
     timestamps: true

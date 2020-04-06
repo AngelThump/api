@@ -34,31 +34,32 @@ module.exports.stream = function(app) {
       });
     }
 
-    const streamkey = req.body.name;
-    
-    console.log(req.body);
+    const stream_key = req.body.name;
 
-    /*
     const users = await app.service('users').find({
-      query: { streamkey: streamkey }
+      query: { stream_key: stream_key }
     }).then(users => {
-      return users
+      return users;
     }).catch(e => {
-      console.error(e);
+      console.error(e.message);
+      return null;
+    })
+
+    if(!users) {
       return res.status(500).json({
         "error": true,
         "errorMSG": "something went terribly wrong in users service"
-      })
-    })
+      });
+    }
 
     if(users.total == 0) {
-      return res.status(500).json({
+      return res.status(404).json({
         "error": true,
         "errorMSG": "no users found"
       });
     }
 
-    const user = users[0];
+    const user = users.data[0];
 
     if(user.banned) {
       return res.status(403).json({
@@ -74,18 +75,108 @@ module.exports.stream = function(app) {
       });
     }
 
-    const username = user.username;*/
-    //res.redirect(username);
-    /*
+    const username = user.username;
+    
     app.service('streams').create({
       ingest: {
         server: req.query.server
-      }
-      ip_address: addr,
+      },
+      ip_address: req.body.addr,
       transcoding: false,
+      type: "live",
+      title: user.title,
+      thumbnail_url: `https://thumbnail.angelthump.com/${username}.jpeg`,
+      stream_key: stream_key,
       user: user
+    }).then(() => {
+      res.redirect(username);
+    }).catch(e => {
+      console.error(e.message);
+      return res.status(500).json({
+        "error": true,
+        "errorMSG": "something went terribly wrong in streams service"
+      });
+    })
+  };
+};
+
+//on_publish_done
+module.exports.done = function(app) {
+  return async function(req, res, next) {
+    if(!req.body.name) {
+      return res.status(400).json({
+        "error": true,
+        "errorMSG": "no name"
+      });
+    }
+    const stream_key = req.body.name;
+
+    const streamService = app.service('streams');
+
+    const streams = await streamService.find({
+      stream_key: stream_key
+    })
+    .then(streams => {
+      return streams
+    }).catch(e => {
+      console.error(e.message);
+      return null;
+    })
+
+    if(!streams) {
+      return res.status(500).json({
+        "error": true,
+        "errorMSG": "something went terribly wrong in streams service"
+      });
+    }
+
+    if(streams.total == 0) {
+      return res.status(404).json({
+        "error": true,
+        "errorMSG": "no users found"
+      });
+    }
+
+    const stream = streams.data[0];
+
+    await streamService
+    .remove(stream._id)
+    .catch(e => {
+      console.error(e.message);
+    })
+
+    /*
+    const metadata = app.service('metadata')
+    .get(stream._id)
+    .then(data => {
+      return data;
+    })
+    .catch(e => {
+      console.error(e.message)
+      return null;
+    })
+
+    if(!metadata) {
+      res.status(500).json({
+        "error": false,
+        "errorMSG": "Something went wrong with the metadata service"
+      });
+    }
+
+    app.service('pastStreams')
+    .create({
+      id: stream._id,
+      user_id: stream.user.id,
+      average_viewer_count: metadata.average_viewer_count,
+      max_viewer_count: metadata.max_viewer_count,
+      viewer_count: stream.viewer_count,
+      duration: (new Date().getTime() - new Date(stream.createdAt).getTime())/1000/60/60
     })*/
-    
+
+    return res.status(200).json({
+      "error": false,
+      "errorMSG": ""
+    });
   };
 };
 
@@ -136,53 +227,6 @@ const updateLive = async (username, live, transcodeKey) => {
   })
   return postObject;
 }
-
-//on_publish_done
-module.exports.done = function(app) {
-  return function(req, res, next) {
-    if(!req.body.name) {
-      return res.status(400).json({
-        "error": true,
-        "errorMSG": "no name"
-      });
-    }
-    const streamkey = req.body.name;
-
-    app.service('users').find({
-      query: { streamkey: streamkey }
-    })
-    .then((users) => {
-      if(users.total == 0) {
-        return res.status(500).json({
-          "error": true,
-          "errorMSG": "no users found"
-        });
-      }
-
-      const user = users.data[0];
-      const username = user.username;
-      doneMuxing(username, app.get('muxerApiKey'));
-      updateLive(username, false, app.get('transcodeKey'));
-
-  		let ingest = user.ingest;
-      ingest.live = false;
-      ingest.transcode = false;
-      ingest.playerTranscodeReady = false;
-
-      app.service('users').patch(user._id, {
-        ingest: ingest,
-        live: false,
-        transcode: false,
-        playerTranscodeReady: false
-      }).then(() => {
-        console.log(username + " is now not live");
-      }).catch((e) => {
-        console.error(e);
-      });
-    })
-    .catch(() => res.status(403).send('Forbidden'));
-  };
-};
 
 module.exports.stats = function(app) {
   return async function(req, res, next) {
