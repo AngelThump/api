@@ -3,7 +3,6 @@ const transcodeAPI = require('./transcodeAPI');
 //const redisClient = require('redis').createClient();
 const ingestAPI = require('./ingestAPI');
 const patreonWebhooks = require('./patreonWebhooks');
-const express = require('@feathersjs/express');
 const { authenticate } = require('@feathersjs/express');
 const userAPI = require('./userAPI');
 //const apicache = require('apicache');
