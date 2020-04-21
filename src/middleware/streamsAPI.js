@@ -17,13 +17,10 @@ module.exports.streams = function(app) {
 			return res.json({error: true, errorMsg: "Something went wrong while retrieving streams"});
 		});
 
-		if(streams.total === 0) {
-			return res.json([]);
-		}
-
-		res.set('X-Total-Count', streams.total);
-
-		return res.json(streams);
+		return res.json({
+			streams: streams, 
+			total: streams.length
+		});
 	};
 };
 
@@ -43,7 +40,10 @@ module.exports.stream = function(app) {
 		});
 
 		if(streams.total === 0) {
-			return res.json({error: true, errorMsg: "No stream exists"});
+			return res.json({
+				username: requested_username,
+				type: ""
+			});
 		}
 
 		const stream = streams.data[0];

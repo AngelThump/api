@@ -35,10 +35,11 @@ module.exports = function (app) {
   });
   
   app.get('/v2/streams', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('10 seconds'), streamsAPI.streams(app));
-  app.get('/v2/stream/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('5 seconds'), streamsAPI.stream(app));
+  app.get('/v2/streams/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('5 seconds'), streamsAPI.stream(app));
   app.patch('/v2/streams/viewers', streamsAPI.patchViewerCount(app));
   
   app.patch('/v2/user/title', authenticate('jwt'), userAPI.patchTitle(app));
+  app.patch('/v2/user/password_protect', authenticate('jwt'), userAPI.patchPasswordProtect(app));
   app.patch('/v2/user/stream_password', authenticate('jwt'), userAPI.patchStreamPassword(app));
   app.post('/v2/user/stream_password', userAPI.checkStreamPassword(app));
 
