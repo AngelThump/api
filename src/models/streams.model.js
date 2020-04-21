@@ -11,7 +11,6 @@ module.exports = function (app) {
     ip_address: {type: String, required: true},
     transcoding: {type: Boolean, required: true},
     type: {type: String},
-    title: {type: String},
     viewer_count: {type: Number},
     thumbnail_url: {type: String},
     stream_key: {type: String, required: true},

@@ -1,29 +1,11 @@
 'use strict';
 
-// HTTP request receives a number of arguments. 
-// POST method is used with application/x-www-form-urlencoded MIME type. 
-// The following arguments are passed to caller:
-
-// call=play
-// addr - client IP address
-// clientid - nginx client id (displayed in log and stat)
-// app - application name
-// flashVer - client flash version
-// swfUrl - client swf url
-// tcUrl - tcUrl
-// pageUrl - client page url
-// name - stream name
-// In addition to the above mentioned items all arguments passed explicitly 
-// to play command are also sent with the callback. For example if stream 
-// is accessed with the url rtmp://localhost/app/movie?a=100&b=face&foo=bar 
-// then a, b & foo are also sent with callback.
-
 process.on('unhandledRejection', function(reason, p){
   console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
   // application specific logging here
 });
 
-const fetch = require('axios');
+const axios = require('axios');
 
 module.exports.stream = function(app) {
   return async function(req, res, next) {
@@ -84,9 +66,9 @@ module.exports.stream = function(app) {
       ip_address: req.body.addr,
       transcoding: false,
       type: "live",
-      title: user.title,
       thumbnail_url: `https://thumbnail.angelthump.com/${username}.jpeg`,
       stream_key: stream_key,
+      viewers: 0,
       user: user
     }).then(() => {
       res.redirect(username);
@@ -182,7 +164,7 @@ module.exports.done = function(app) {
 
 // post to mux api to start muxing
 const mux = async(server, name, muxerApiKey) => {
-  const postObject = await fetch(`http://muxer-api.angelthump.com:3030/v1/mux`, {
+  const postObject = await axios(`http://muxer-api.angelthump.com:3030/v1/mux`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -205,7 +187,7 @@ const mux = async(server, name, muxerApiKey) => {
 }
 
 const updateLive = async (username, live, transcodeKey) => {
-  const postObject = await fetch(`http://10.132.146.231:8080/admin`, {
+  const postObject = await axios(`http://10.132.146.231:8080/admin`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -272,7 +254,7 @@ module.exports.stats = function(app) {
 
     let ingest = server.ingest.substring(7, server.ingest.lastIndexOf('/'))
 
-    await fetch(`https://${basicAuth}@${ingest}/stat`, {
+    await axios(`https://${basicAuth}@${ingest}/stat`, {
       method: 'GET',
       headers: {
         'Content-Type': 'text/xml'
@@ -326,7 +308,7 @@ module.exports.stats = function(app) {
 };
 
 async function getServer(username, muxerApiKey) {
-  const postObject = await fetch(`http://10.132.4.25:3030/v1/mux/ingest`, {
+  const postObject = await axios(`http://10.132.4.25:3030/v1/mux/ingest`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -347,7 +329,7 @@ async function getServer(username, muxerApiKey) {
 }
 
 const doneMuxing = async (name, muxerApiKey) => {
-  const postObject = await fetch(`http://muxer-api.angelthump.com:3030/v1/mux/done`, {
+  const postObject = await axios(`http://muxer-api.angelthump.com:3030/v1/mux/done`, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',

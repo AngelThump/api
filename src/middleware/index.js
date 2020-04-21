@@ -10,7 +10,7 @@ const { authenticate } = require('@feathersjs/express');
 const droplet = require('./dropletAPI');
 const userAPI = require('./userAPI');
 //const apicache = require('apicache');
-const streams = require('./streams');
+const streamsAPI = require('./streamsAPI');
 
 module.exports = function (app) {
   //const limiter = require('express-limiter')(app, redisClient);
@@ -33,7 +33,8 @@ module.exports = function (app) {
   
   //v2 api change all to follow /v2 endpoint spec
   app.get('/v1', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ api.all(app));
-  app.get('/v2/streams', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('1 seconds'),*/ streams.all(app));
+  app.get('/v2/streams', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('1 seconds'),*/ streamsAPI.streams(app));
+  app.get('/v2/stream/:username', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('1 seconds'),*/ streamsAPI.stream(app));
   app.get('/v1/:username', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ /*redisAPICache('5 seconds'),*/ api.user(app));
   //app.get('/v2/user/:username')
   app.post('/user/v1/title', /*limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}),*/ cookieParser(), authenticate('jwt'), userAPI.title(app));
@@ -41,7 +42,6 @@ module.exports = function (app) {
   //app.post('/v2/user/title')
   //app.post('/v2/user/password')
 
-  app.get('/admin', admin(app));
   app.post('/admin/v1/ban', admin.ban(app));
   app.post('/admin/v1/unban', admin.unban(app));
   app.post('/admin/v1/drop', admin.drop(app));

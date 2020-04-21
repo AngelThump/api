@@ -1,23 +1,5 @@
 'use strict';
-const request = require('request');
-
-module.exports = function(app) {
-  return function(req, res, next) {
-    if(!req.headers['authorization']) {
-      res.status(403).send('no key');
-      return;
-    }
-
-    const apiKey = req.headers.authorization.split(' ')[1];
-    const adminKeys = app.get("adminKeys");
-    if (!adminKeys.includes(apiKey)) {
-      res.status(403).send('wrong key');
-      return;
-    }
-
-    const action = req.body.action;
-  };
-};
+const axios = require('axios');
 
 module.exports.ban = function(app) {
   return function(req, res, next) {
@@ -47,18 +29,33 @@ module.exports.ban = function(app) {
     const requested_username = req.body.username;
     const reason = req.body.reason;
 
+    const ingestServer =
+    await app.service('streams').find({
+      query: { "user.username": requested_username}
+    }).then(streams => {
+      return streams.data[0].ingest.server;
+    }).catch(error => {
+      console.error(error);
+    })
+
+    if(!ingestServer) {
+      return res.json({
+        error: true,
+        errorMSG: "Something went wrong with streams service"
+      })
+    }
+
     app.service('users').find({
-        query: { username: requested_username }
+      query: { username: requested_username }
     }).then((users) => {
-      if(!(users.total > 0)) {
+      if(!users.total > 0) {
         res.status(404).send("user not found");
         return;
       }
       const user = users.data[0];
 
       if(user.banned) {
-        res.status(400).send("user is already banned");
-        return;
+        return res.status(400).send("user is already banned");
       }
 
       let bansObject = user.bans;
@@ -71,19 +68,27 @@ module.exports.ban = function(app) {
         date: new Date().toISOString()
       })
 
-      app.service('users').patch(user._id, {
+      app.service('users').patch(user.id, {
         banned: true,
         bans: bansObject
-      }).then(() => {
-        request(`https://${app.get('muxerAuth')}@${user.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`);
-        /*
-        const servers = app.get("ingestServers");
-        for(let server of servers) {
-          request('https://' + server + '-ingest.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
-        }*/
+      }).then(async () => {
+        await axios.get(`https://${app.get('muxerAuth')}@${ingestServer}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
+        .then(() => {
+          res.status(200).json({
+            error: false,
+            errorMSG: ""
+          });
+        }).catch(e => {
+          console.error(e);
+          return res.status(200).json({
+            error: true,
+            errorMSG: "something went wrong trying to drop user"
+          });
+        })
 
+        /*
         setTimeout(()=> {
-          request.post({
+          axios.post({
             url: 'https://10.132.146.231/admin',
             insecure: true,
             rejectUnauthorized: false,
@@ -95,14 +100,20 @@ module.exports.ban = function(app) {
               action: 'reload'
             }
           });
-        }, 5000);
-        
-        res.status(200).send(requested_username + " is now banned!");
+        }, 5000);*/
       }).catch((e) => {
         console.error(e);
+        res.status(200).json({
+          error: true,
+          errorMSG: "Something went wrong trying to patch user"
+        });
       });
     }).catch((e) => {
       console.error(e);
+      res.status(200).json({
+        error: true,
+        errorMSG: "Something went wrong trying to find user"
+      });
     });
   }
 }
@@ -137,15 +148,26 @@ module.exports.unban = function(app) {
         return;
       }
 
-      app.service('users').patch(user._id, {
+      app.service('users').patch(user.id, {
         banned: false
       }).then(() => {
-        res.status(200).send(requested_username + " is now unbanned!");
+        return res.json({
+          error: false,
+          errorMSG: ""
+        })
       }).catch((e) => {
         console.error(e);
+        return res.json({
+          error: true,
+          errorMSG: "Something went wrong trying to patch user"
+        })
       });
     }).catch((e) => {
       console.error(e);
+      return res.json({
+        error: true,
+        errorMSG: "Something went wrong trying to find user"
+      })
     });
   }
 }
@@ -172,25 +194,34 @@ module.exports.drop = function(app) {
 
     const requested_username = req.body.username;
 
-    app.service('users').find({
-      query: { username: requested_username }
-    }).then((users) => {
-        if(!(users.total > 0)) {
-          res.status(404).send("user not found");
-          return;
-        }
-        const user = users.data[0];
-        request(`https://${app.get('muxerAuth')}@${user.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`);
-        res.status(200).send(requested_username + " has been dropped!");
-      }).catch((e) => {
-        console.error(e);
-      });
-    /*
-    const servers = app.get("ingestServers");
-    for(let server of servers) {
-      request('https://' + server + '-ingest.angelthump.com/control/drop/publisher?app=live&name=' + requested_username);
+    const ingestServer =
+    await app.service('streams').find({
+      query: { "user.username": requested_username}
+    }).then(streams => {
+      return streams.data[0].ingest.server;
+    }).catch(error => {
+      console.error(error);
+    })
+
+    if(!ingestServer) {
+      return res.json({
+        error: true,
+        errorMSG: "Something went wrong with streams service"
+      })
     }
 
-    res.status(200).send(requested_username + " has been dropped!");*/
+    await axios.get(`https://${app.get('muxerAuth')}@${ingestServer}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
+    .then(() => {
+      res.status(200).json({
+        error: false,
+        errorMSG: ""
+      });
+    }).catch(e => {
+      console.error(e);
+      return res.status(200).json({
+        error: true,
+        errorMSG: "something went wrong trying to drop user"
+      });
+    })
   }
 }
