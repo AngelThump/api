@@ -15,12 +15,16 @@ const fs = require('fs');
 const morgan = require('morgan');
 const requestIp = require('request-ip');
 const accessLogStream = fs.createWriteStream(path.join(__dirname, '../logs/access.log'), {flags: 'a'});
+const authentication = require('./authentication');
 
 const middleware = require('./middleware');
 const services = require('./services');
 const appHooks = require('./app.hooks');
 
 const mongoose = require('./mongoose');
+
+
+const sequelize = require('./sequelize');
 
 
 const app = express(feathers());
@@ -64,8 +68,11 @@ app.configure(socketio());
 
 app.configure(mongoose);
 
+app.configure(sequelize);
+
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);
+app.configure(authentication);
 // Set up our services (see `services/index.js`)
 app.configure(services);
 

@@ -1,18 +1,20 @@
-const { disallow } = require('feathers-hooks-common');
+const { iff, isProvider, disallow } = require('feathers-hooks-common');
+const { protect } = require('@feathersjs/authentication-local').hooks;
+const dispatch = require('./dispatch');
 
 module.exports = {
   before: {
-    all: [disallow('external')],
+    all: [/*(disallow('external'), authenticate('jwt')*/],
     find: [],
     get: [],
-    create: [],
-    update: [],
-    patch: [],
-    remove: []
+    create: [disallow()],
+    update: [disallow()],
+    patch: [disallow('external')],
+    remove: [disallow()]
   },
 
   after: {
-    all: [],
+    all: [iff(isProvider('external'), dispatch()), protect('password')],
     find: [],
     get: [],
     create: [],
@@ -22,7 +24,7 @@ module.exports = {
   },
 
   error: {
-    all: [],
+    all: [iff(isProvider('external'), dispatch()), protect('password')],
     find: [],
     get: [],
     create: [],

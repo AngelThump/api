@@ -7,12 +7,43 @@ process.on('unhandledRejection', function(reason, p){
 
 const axios = require('axios');
 
+module.exports.list = function(app) {
+  return async function(req, res, next) {
+
+    axios.get(`https://api.digitalocean.com/v2/droplets?tag_name=ingest`, {
+      headers: {
+        authorization: `Bearer ${app.get('doAPIKey')}`
+      }
+    }).then(response => {
+      let ingestServers=[];
+      for(let server of response.data.droplets) {
+        const json = {
+          name: server.name,
+          rtmpUrl: `rtmp://${server.name}.angelthump.com:1935/live`,
+          location: server.region.name
+        }
+        ingestServers.push(json);
+      }
+      res.json({
+        ingestServers: ingestServers,
+        total: response.data.meta.total
+      })
+    }).catch(e => {
+      console.error(e);
+      return res.json({
+        error: true,
+        errorMsg: "something went wrong"
+      })
+    })
+  };
+};
+
 module.exports.stream = function(app) {
   return async function(req, res, next) {
     if(!req.body.name) {
       return res.status(400).json({
         "error": true,
-        "errorMSG": "no name"
+        errorMsg: "no name"
       });
     }
 
@@ -30,14 +61,14 @@ module.exports.stream = function(app) {
     if(!users) {
       return res.status(500).json({
         "error": true,
-        "errorMSG": "something went terribly wrong in users service"
+        errorMsg: "something went terribly wrong in users service"
       });
     }
 
     if(users.total == 0) {
       return res.status(404).json({
         "error": true,
-        "errorMSG": "no users found"
+        errorMsg: "no users found"
       });
     }
 
@@ -46,14 +77,14 @@ module.exports.stream = function(app) {
     if(user.banned) {
       return res.status(403).json({
         "error": true,
-        "errorMSG": "you are banned"
+        errorMsg: "you are banned"
       });
     }
 
     if(!user.isVerified) {
       return res.status(403).json({
         "error": true,
-        "errorMSG": "email not verified"
+        errorMsg: "email not verified"
       });
     }
 
@@ -63,20 +94,22 @@ module.exports.stream = function(app) {
       ingest: {
         server: req.query.server
       },
+      userId: user.id,
+      display_name: user.display_name,
+      offline_image_url: user.offline_image_url,
       ip_address: req.body.addr,
       transcoding: false,
       type: "live",
       thumbnail_url: `https://thumbnail.angelthump.com/${username}.jpeg`,
       stream_key: stream_key,
       viewers: 0,
-      user: user
     }).then(() => {
       res.redirect(username);
     }).catch(e => {
       console.error(e.message);
       return res.status(500).json({
         "error": true,
-        "errorMSG": "something went terribly wrong in streams service"
+        errorMsg: "something went terribly wrong in streams service"
       });
     })
   };
@@ -88,7 +121,7 @@ module.exports.done = function(app) {
     if(!req.body.name) {
       return res.status(400).json({
         "error": true,
-        "errorMSG": "no name"
+        errorMsg: "no name"
       });
     }
     const stream_key = req.body.name;
@@ -108,14 +141,14 @@ module.exports.done = function(app) {
     if(!streams) {
       return res.status(500).json({
         "error": true,
-        "errorMSG": "something went terribly wrong in streams service"
+        errorMsg: "something went terribly wrong in streams service"
       });
     }
 
     if(streams.total == 0) {
       return res.status(404).json({
         "error": true,
-        "errorMSG": "no users found"
+        errorMsg: "no users found"
       });
     }
 
@@ -141,7 +174,7 @@ module.exports.done = function(app) {
     if(!metadata) {
       res.status(500).json({
         "error": false,
-        "errorMSG": "Something went wrong with the metadata service"
+        errorMsg: "Something went wrong with the metadata service"
       });
     }
 
@@ -157,7 +190,7 @@ module.exports.done = function(app) {
 
     return res.status(200).json({
       "error": false,
-      "errorMSG": ""
+      errorMsg: ""
     });
   };
 };

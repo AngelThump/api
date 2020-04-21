@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 module.exports.ban = function(app) {
-  return function(req, res, next) {
+  return async function(req, res, next) {
     if(!req.headers['authorization']) {
       res.status(403).send('no key');
       return;
@@ -173,7 +173,7 @@ module.exports.unban = function(app) {
 }
 
 module.exports.drop = function(app) {
-  return function(req, res, next) {
+  return async function(req, res, next) {
     if(!req.headers['authorization']) {
       res.status(403).send('no key');
       return;

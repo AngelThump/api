@@ -1,34 +1,95 @@
-module.exports.title = function(app) {
+module.exports.patchTitle = function(app) {
 	return function(req, res, next) {
-		const user = req.user
-		const title = req.body.title;
-		app.service('users').patch(user._id, {
+		let title = req.body.title;
+		if(!req.body.title) {
+            title = "";
+        }
+
+		const user = req.user;
+
+		app.service('users').patch(user.id, {
 			title: title
 		}).then(() => {
-			res.status(200).send("ok");
-		}).catch((e) => {
-			res.status(500).send(e);
+			return res.json({
+                error: false,
+                errorMsg: ""
+            })
+		}).catch(e => {
+			console.error(e);
+			return res.json({
+                error: true,
+                errorMsg: "something went wrong trying to patch title in users service"
+            })
+		});
+	};
+};
+
+module.exports.patchStreamPassword = function(app) {
+	return function(req, res, next) {
+
+		if(!req.body.stream_password) {
+            return res.json({
+                error: true,
+                errorMsg: "no stream password"
+            })
+		}
+
+		//consider one way hash? seems dumb since its suppose to be shared.
+
+		const user = req.user;
+
+		app.service('users').patch(user.id, {
+			stream_password: req.body.stream_password
+		}).then(() => {
+			return res.json({
+                error: false,
+                errorMsg: ""
+            })
+		}).catch(e => {
+			console.error(e);
+			return res.json({
+                error: true,
+                errorMsg: "something went wrong trying to patch stream password in users service"
+            })
 		});
 	};
 };
 
 module.exports.checkStreamPassword = function(app) {
 	return function(req, res, next) {
-		const stream = req.body.stream;
+
+		if(!req.body.stream) {
+            return res.json({
+                error: true,
+                errorMsg: "no stream"
+            })
+		}
+
+		if(!req.body.password) {
+            return res.json({
+                error: true,
+                errorMsg: "no password"
+            })
+		}
+
 		const password = req.body.password;
 		const adminPass = app.get("adminPass");
 
 		app.service('users').find({
-			query: { username: stream }
+			query: { username: req.body.stream }
 		})
-		.then((users) => {
+		.then(users => {
 			const user = users.data[0];
 			res.json({
-				'success': user.streamPassword == password || password == adminPass
+				'success': user.stream_password === password || password === adminPass
 			})
 		})
-		.catch((error) => {
-			res.status(400).send(error.message);
+		.catch(error => {
+			console.error(error);
+			return res.json({
+                error: true,
+                errorMsg: "something went wrong checking stream password"
+            })
 		});
 	};
 };
