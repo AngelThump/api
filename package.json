@@ -27,6 +27,8 @@
     "eslint": "eslint src/. test/. --config .eslintrc.json",
     "dev": "nodemon src/",
     "start": "node src/",
+    "production": "NODE_ENV=production node src/",
+    "production-windows": "set NODE_ENV=production&& node src/",
     "mocha": "mocha test/ --recursive --exit"
   },
   "dependencies": {
