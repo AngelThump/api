@@ -90,18 +90,19 @@ module.exports.stream = function(app) {
         server: req.query.server
       },
       userId: user.id,
+      username: user.username,
       display_name: user.display_name,
-      offline_image_url: user.offline_image_url,
+      offline_banner_url: user.offline_banner_url,
       ip_address: req.body.addr,
       transcoding: false,
       type: "live",
       thumbnail_url: `https://thumbnail.angelthump.com/${username}.jpeg`,
       stream_key: stream_key,
-      viewers: 0,
+      viewer_count: 0,
     }).then(() => {
       res.redirect(username);
-      mux(`rtmp://${req.query.server}.angelthump.com/live`, username, app.get('muxerApiKey'));
-      updateLive(username, true, app.get('transcodeKey'))
+      //mux(`rtmp://${req.query.server}.angelthump.com/live`, username, app.get('muxerApiKey'));
+      //updateLive(username, true, app.get('transcodeKey'))
     }).catch(e => {
       console.error(e.message);
       return res.status(500).json({
@@ -157,8 +158,8 @@ module.exports.done = function(app) {
       console.error(e.message);
     })
 
-    doneMuxing(username, app.get('muxerApiKey'))
-    updateLive(username, false, app.get('transcodeKey'))
+    //doneMuxing(username, app.get('muxerApiKey'))
+    //updateLive(username, false, app.get('transcodeKey'))
 
     /*
     const metadata = app.service('metadata')
