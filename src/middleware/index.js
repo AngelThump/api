@@ -1,7 +1,7 @@
 const admin = require('./admin');
 const transcodeAPI = require('./transcodeAPI');
 //const redisClient = require('redis').createClient();
-const ingest = require('./ingest');
+const ingestAPI = require('./ingestAPI');
 const patreonWebhooks = require('./patreonWebhooks');
 const express = require('@feathersjs/express');
 const { authenticate } = require('@feathersjs/express');
@@ -27,7 +27,7 @@ module.exports = function (app) {
   /*
   limiter({
     path: '*',
-    method: 'put',
+    method: 'patch',
     lookup: 'headers.x-forwarded-for',
     total: 10,
     expire: 1000 * 30,
@@ -59,14 +59,9 @@ module.exports = function (app) {
 
   app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
-  app.get('/v2/ingest', ingest.list(app)); // list of ingest servers
-  app.post('/v2/ingest/stats', ingest.stats(app));
-  app.post('/v2/ingest', ingest.stream(app));
-  app.post('/v2/ingest/done', ingest.done(app));
+  app.get('/v2/ingest', ingestAPI.list(app)); // list of ingest servers
+  app.post('/v2/ingest/stats', ingestAPI.stats(app));
+  app.post('/v2/ingest', ingestAPI.stream(app));
+  app.post('/v2/ingest/done', ingestAPI.done(app));
 
-  app.use(express.errorHandler({
-    html: function(error, req, res, next) {
-      res.render('errors.ejs', {code: error.code, message: error.message});
-    }
-  }));
 };
