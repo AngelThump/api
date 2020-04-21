@@ -1,74 +1,344 @@
 'use strict'
 
-module.exports = function(app) {
+module.exports.transcode = function(app) {
 	return function(req, res, next) {
-        const transcodeKey = app.get("transcodeKey");
-        
-        if(req.headers['authorization']) {
-            const apiKey = req.headers.authorization.split(' ')[1];
-            if (transcodeKey.includes(apiKey)) {
-                const action = req.body.action;
-                if(action) {
-                    if(action == "transcode") {
-                        if(req.body.username) {
-                            transcode(req.body.username);
-                        } else {
-                            res.status(400).send('missing username');
-                        }
-                    } else if (action == "ready") {
-                        if(req.body.username) {
-                            transcodeReady(req.body.username);
-                        } else {
-                            res.status(400).send('missing username');
-                        }
-                    }
-                } else {
-                    res.status(400).send('missing action');
-                }
-            } else {
-                res.status(403).send('wrong key');
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "missing authorization header"
+            })
+            return;
+        }
+
+        const apiKey = req.headers.authorization.split(' ')[1];
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "wrong authorization header"
+            })
+            return;
+        }
+
+        if (req.body.transcode !== null) {
+            res.json({
+                error: true,
+                errorMsg: "no transcode option"
+            })
+            return;
+        }
+
+        app.service('streams').find({
+            query: { username: username }
+        }).then(streams => {
+            if(!streams.total > 0) {
+                res.json({
+                    error: true,
+                    errorMsg: "stream not found"
+                })
+                return;
             }
-        } else {
-            res.status(403).send('no key');
-        }
-
-
-        function transcode(username) {
-            app.service('users').find({
-                query: { username: username }
-            }).then((users) => {
-                if (users.total > 0) {
-                    const user = users.data[0];
-                    app.service('users').patch(user._id, {
-                        transcode: req.body.transcode
-                    }).then(() => {
-                        res.status(200).send(user.username + ": " + req.body.transcode);
-                    }).catch((e) => {
-                        res.status(500).send(e);
-                    });
-                } else {
-                    res.status(404).send("Can't find user");
-                }
+            const stream = streams.data[0];
+            app.service('streams').patch(stream._id, {
+                transcode: req.body.transcode
+            }).then(() => {
+                res.json({
+                    error: false,
+                    errorMsg: "",
+                    successMsg: "YEP"
+                })
+            }).catch((e) => {
+                res.json({
+                    error: true,
+                    errorMsg: "something went wrong with the users service"
+                })
             });
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with the users service"
+            })
+            return;
+        });
+	};
+};
+
+module.exports.transcodeReady = function(app) {
+	return function(req, res, next) {
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "missing authorization header"
+            })
+            return;
         }
 
-        function transcodeReady(username) {
-            app.service('users').find({
-                query: { username: username }
-            }).then((users) => {
-                if (users.total > 0) {
-                    const user = users.data[0];
-                    app.service('users').patch(user._id, {
-                        playerTranscodeReady: req.body.ready
-                    }).then(() => {
-                        res.status(200).send(user.username + ": player ready");
-                    }).catch((e) => {
-                        res.status(500).send(e);
-                    });
-                } else {
-                    res.status(404).send("Can't find user");
-                }
-            });
+        const apiKey = req.headers.authorization.split(' ')[1];
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "wrong authorization header"
+            })
+            return;
         }
+
+        if (req.body.ready !== null) {
+            res.json({
+                error: true,
+                errorMsg: "no ready option"
+            })
+            return;
+        }
+
+        app.service('users').find({
+            query: { username: username }
+        }).then(streams => {
+            if(!streams.total > 0) {
+                res.json({
+                    error: true,
+                    errorMsg: "stream not found"
+                })
+                return;
+            }
+            const stream = streams.data[0];
+            app.service('streams').patch(stream._id, {
+                transcodeReady: req.body.ready
+            }).then(() => {
+                res.json({
+                    error: false,
+                    errorMsg: "",
+                    successMsg: "YEP"
+                })
+            }).catch((e) => {
+                res.json({
+                    error: true,
+                    errorMsg: "something went wrong with the users service"
+                })
+            });
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with the users service"
+            })
+            return;
+        });
+	};
+};
+
+module.exports.add = function(app) {
+	return function(req, res, next) {
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "Missing Authorization Header"
+            })
+            return;
+        }
+
+        const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "Wrong Authorization Key"
+            })
+            return;
+        }
+
+
+        if(!req.body.username) {
+            res.json({
+                error: true,
+                errorMsg: "Missing username param"
+            })
+            return;
+        }
+
+        if(!req.body.dropletId) {
+            res.json({
+                error: true,
+                errorMsg: "Missing dropletid param"
+            })
+            return;
+        }
+
+        const {username, dropletId} = req.body;
+
+        app.service('transcodes')
+        .create({
+            username: username,
+            dropletId: dropletId
+        }).then(() => {
+            res.json({
+                error: false,
+                errorMsg: ""
+            })
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with transcodes service"
+            })
+            return;
+        })
+	};
+};
+
+module.exports.update = function(app) {
+	return async function(req, res, next) {
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "Missing Authorization Header"
+            })
+            return;
+        }
+
+        const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "Wrong Authorization Key"
+            })
+            return;
+        }
+
+
+        if(!req.body.username) {
+            res.json({
+                error: true,
+                errorMsg: "Missing username param"
+            })
+            return;
+        }
+
+        if(!req.body.dropletId) {
+            res.json({
+                error: true,
+                errorMsg: "Missing dropletid param"
+            })
+            return;
+        }
+
+        const {username, dropletId} = req.body;
+
+        const transcode =
+        await app.service('transcodes')
+        .find({
+            query: {username: username}
+        }).then(transcodes => {
+            return transcodes.data
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with transcodes service"
+            })
+            return;
+        })
+
+        if(!transcode) {
+            res.json({
+                error: true,
+                errorMsg: "no transcode found"
+            })
+            return;
+        }
+
+        app.service('transcodes')
+        .patch(transcode._id,{
+            username: username,
+            dropletId: dropletId
+        }).then(() => {
+            res.json({
+                error: false,
+                errorMsg: ""
+            })
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with transcodes service"
+            })
+            return;
+        })
+	};
+};
+
+module.exports.remove = function(app) {
+	return async function(req, res, next) {
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "Missing Authorization Header"
+            })
+            return;
+        }
+
+        const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "Wrong Authorization Key"
+            })
+            return;
+        }
+
+        if(!req.body.dropletId) {
+            res.json({
+                error: true,
+                errorMsg: "Missing dropletid param"
+            })
+            return;
+        }
+
+        const {dropletId} = req.body;
+
+        const transcode =
+        await app.service('transcodes')
+        .find({
+            query: {dropletId: dropletId}
+        }).then(transcodes => {
+            return transcodes.data
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with transcodes service"
+            })
+            return;
+        })
+
+        if(!transcode) {
+            res.json({
+                error: true,
+                errorMsg: "no transcode found"
+            })
+            return;
+        }
+
+        app.service('transcodes')
+        .remove(transcode._id)
+        .then(() => {
+            res.json({
+                error: false,
+                errorMsg: ""
+            })
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with transcodes service"
+            })
+            return;
+        })
 	};
 };

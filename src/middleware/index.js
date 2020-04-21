@@ -1,11 +1,10 @@
 const admin = require('./admin');
-const transcode = require('./transcodeAPI');
+const transcodeAPI = require('./transcodeAPI');
 //const redisClient = require('redis').createClient();
 const ingest = require('./ingest');
 const patreonWebhooks = require('./patreonWebhooks');
 const express = require('@feathersjs/express');
 const { authenticate } = require('@feathersjs/express');
-const droplet = require('./dropletAPI');
 const userAPI = require('./userAPI');
 //const apicache = require('apicache');
 const streamsAPI = require('./streamsAPI');
@@ -52,10 +51,11 @@ module.exports = function (app) {
   app.post('/v2/admin/unban', admin.unban(app));
   app.post('/v2/admin/drop', admin.drop(app));
 
-  app.post('/transcode/v1', transcode(app));
-
-  app.post('/droplet/v1', droplet(app));
-  app.get('/droplet/v1', droplet.list(app))
+  app.post('/v2/transcode', transcodeAPI.transcode(app));
+  app.patch('/v2/transcode/ready', transcodeAPI.transcodeReady(app));
+  app.post('/v2/transcode/add', transcodeAPI.add(app));
+  app.patch('/v2/transcode/update', transcodeAPI.update(app));
+  app.delete('/v2/transcode/remove', transcodeAPI.remove(app));
 
   app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
