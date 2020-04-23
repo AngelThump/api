@@ -4,7 +4,7 @@ const dispatch = require('./dispatch');
 
 module.exports = {
   before: {
-    all: [/*(disallow('external'), authenticate('jwt')*/],
+    all: [],
     find: [],
     get: [],
     create: [disallow()],

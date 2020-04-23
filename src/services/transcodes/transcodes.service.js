@@ -6,7 +6,7 @@ const hooks = require('./transcodes.hooks');
 module.exports = function (app) {
   const options = {
     Model: createModel(app),
-    paginate: app.get('paginate')
+    paginate: false
   };
 
   // Initialize our service with any options it requires

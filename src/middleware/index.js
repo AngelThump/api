@@ -35,6 +35,7 @@ module.exports = function (app) {
   });
   
   app.get('/v2/streams', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('10 seconds'), streamsAPI.streams(app));
+  app.get('/v2/streams/:username/ingest', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), streamsAPI.getIngest(app));
   app.get('/v2/streams/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('5 seconds'), streamsAPI.stream(app));
   app.patch('/v2/streams/viewers', streamsAPI.patchViewerCount(app));
   

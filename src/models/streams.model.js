@@ -9,16 +9,15 @@ module.exports = function (app) {
   const schema = new Schema({
     userId: {type: String, required: true},
     username: {type: String, required: true},
-    display_name: {type: String, required: true},
-    offline_banner_url: {type: String, required: true},
     ingest: {type: Object, required: true},
-    ip_address: {type: String, required: true},
+    ip_address: {type: String},
     transcoding: {type: Boolean, required: true},
     transcodeReady: {type: Boolean, default: false},
     type: {type: String},
     viewer_count: {type: Number},
     thumbnail_url: {type: String},
-    stream_key: {type: String, required: true}
+    stream_key: {type: String, required: true},
+    user: {type: Object}
   }, {
     timestamps: true
   });

@@ -11,6 +11,7 @@ module.exports.transcode = function(app) {
         }
 
         const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
 
         if (!transcodeKey.includes(apiKey)) {
             res.json({
@@ -20,7 +21,7 @@ module.exports.transcode = function(app) {
             return;
         }
 
-        if (req.body.transcode !== null) {
+        if (req.body.transcode === null) {
             res.json({
                 error: true,
                 errorMsg: "no transcode option"
@@ -28,26 +29,35 @@ module.exports.transcode = function(app) {
             return;
         }
 
+        if (!req.body.username) {
+            res.json({
+                error: true,
+                errorMsg: "no user option"
+            })
+            return;
+        }
+
         app.service('streams').find({
-            query: { username: username }
+            query: { username: req.body.username }
         }).then(streams => {
-            if(!streams.total > 0) {
+            if(!streams.length > 0) {
                 res.json({
                     error: true,
                     errorMsg: "stream not found"
                 })
                 return;
             }
-            const stream = streams.data[0];
+            const stream = streams[0];
             app.service('streams').patch(stream._id, {
-                transcode: req.body.transcode
+                transcoding: req.body.transcode
             }).then(() => {
                 res.json({
                     error: false,
                     errorMsg: "",
                     successMsg: "YEP"
                 })
-            }).catch((e) => {
+            }).catch(e => {
+                console.error(e);
                 res.json({
                     error: true,
                     errorMsg: "something went wrong with the users service"
@@ -75,6 +85,7 @@ module.exports.transcodeReady = function(app) {
         }
 
         const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
 
         if (!transcodeKey.includes(apiKey)) {
             res.json({
@@ -84,7 +95,15 @@ module.exports.transcodeReady = function(app) {
             return;
         }
 
-        if (req.body.ready !== null) {
+        if(!req.body.username) {
+            res.json({
+                error: true,
+                errorMsg: "no username"
+            })
+            return;
+        }
+
+        if (req.body.ready === null) {
             res.json({
                 error: true,
                 errorMsg: "no ready option"
@@ -92,17 +111,17 @@ module.exports.transcodeReady = function(app) {
             return;
         }
 
-        app.service('users').find({
-            query: { username: username }
+        app.service('streams').find({
+            query: { username: req.body.username }
         }).then(streams => {
-            if(!streams.total > 0) {
+            if(!streams.length > 0) {
                 res.json({
                     error: true,
                     errorMsg: "stream not found"
                 })
                 return;
             }
-            const stream = streams.data[0];
+            const stream = streams[0];
             app.service('streams').patch(stream._id, {
                 transcodeReady: req.body.ready
             }).then(() => {
@@ -114,22 +133,39 @@ module.exports.transcodeReady = function(app) {
             }).catch((e) => {
                 res.json({
                     error: true,
-                    errorMsg: "something went wrong with the users service"
+                    errorMsg: "something went wrong with the streams service"
                 })
             });
         }).catch(e => {
             console.error(e);
             res.json({
                 error: true,
-                errorMsg: "something went wrong with the users service"
+                errorMsg: "something went wrong with the streams service"
             })
             return;
+        });
+
+
+        app.service('transcodes').find({
+            query: { username: req.body.username }
+        }).then(streams => {
+            if(!streams.length > 0) {
+                return;
+            }
+            const stream = streams[0];
+            app.service('transcodes').patch(stream._id, {
+                transcodeReady: req.body.ready
+            }).catch((e) => {
+                console.error(e);
+            });
+        }).catch(e => {
+            console.error(e);
         });
 	};
 };
 
 module.exports.add = function(app) {
-	return function(req, res, next) {
+	return async function(req, res, next) {
         if(!req.headers['authorization']) {
             res.json({
                 error: true,
@@ -168,10 +204,26 @@ module.exports.add = function(app) {
 
         const {username, dropletId} = req.body;
 
+        const streams =
+        await app.service('streams')
+        .find({
+            query: {username: username}
+        })
+        .then(streams => {
+            return streams;
+        })
+        .catch(e => {
+            console.error(e);
+        })
+
         app.service('transcodes')
         .create({
             username: username,
-            dropletId: dropletId
+            dropletId: dropletId,
+            ingest: {
+                server: streams[0].ingest.server,
+                url: `rtmp://${streams[0].ingest.server}.angelthump.com/live`
+            }
         }).then(() => {
             res.json({
                 error: false,
@@ -233,7 +285,7 @@ module.exports.update = function(app) {
         .find({
             query: {username: username}
         }).then(transcodes => {
-            return transcodes.data
+            return transcodes
         }).catch(e => {
             console.error(e);
             res.json({
@@ -302,12 +354,12 @@ module.exports.remove = function(app) {
 
         const {dropletId} = req.body;
 
-        const transcode =
+        const transcodes =
         await app.service('transcodes')
         .find({
             query: {dropletId: dropletId}
         }).then(transcodes => {
-            return transcodes.data
+            return transcodes
         }).catch(e => {
             console.error(e);
             res.json({
@@ -317,7 +369,7 @@ module.exports.remove = function(app) {
             return;
         })
 
-        if(!transcode) {
+        if(transcodes.length === 0) {
             res.json({
                 error: true,
                 errorMsg: "no transcode found"
@@ -326,7 +378,7 @@ module.exports.remove = function(app) {
         }
 
         app.service('transcodes')
-        .remove(transcode._id)
+        .remove(transcodes[0]._id)
         .then(() => {
             res.json({
                 error: false,

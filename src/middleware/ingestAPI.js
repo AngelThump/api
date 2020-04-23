@@ -87,21 +87,19 @@ module.exports.stream = function(app) {
     
     app.service('streams').create({
       ingest: {
-        server: req.query.server
+        server: req.query.server,
+        url: `rtmp://${req.query.server}.angelthump.com/live`
       },
       userId: user.id,
       username: user.username,
-      display_name: user.display_name,
-      offline_banner_url: user.offline_banner_url,
-      ip_address: req.body.addr,
       transcoding: false,
       type: "live",
-      thumbnail_url: `https://thumbnail.angelthump.com/${username}.jpeg`,
+      thumbnail_url: `https://thumbnail.angelthump.com/thumbnails/${username}.jpeg`,
       stream_key: stream_key,
       viewer_count: 0,
-    }).then(() => {
+    }).then(async () => {
       res.redirect(username);
-      //mux(`rtmp://${req.query.server}.angelthump.com/live`, username, app.get('muxerApiKey'));
+      await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
       //updateLive(username, true, app.get('transcodeKey'))
     }).catch(e => {
       console.error(e.message);
@@ -143,14 +141,14 @@ module.exports.done = function(app) {
       });
     }
 
-    if(streams.total == 0) {
+    if(streams.length == 0) {
       return res.status(404).json({
         "error": true,
         errorMsg: "no users found"
       });
     }
 
-    const stream = streams.data[0];
+    const stream = streams[0];
 
     await streamService
     .remove(stream._id)
@@ -158,7 +156,7 @@ module.exports.done = function(app) {
       console.error(e.message);
     })
 
-    //doneMuxing(username, app.get('muxerApiKey'))
+    doneMuxing(stream.username, app.get('muxerApiKey'))
     //updateLive(username, false, app.get('transcodeKey'))
 
     /*
@@ -197,48 +195,43 @@ module.exports.done = function(app) {
 };
 
 // post to mux api to start muxing
-const mux = async(server, name, muxerApiKey) => {
-  const postObject = await axios(`http://muxer-api.angelthump.com:3030/v1/mux`, {
-    method: 'POST',
+const mux = async(url, server, name, muxerApiKey) => {
+  const postObject = await axios({
+    url: `https://muxer-api.angelthump.com/v2/mux`,
+    method: "POST",
     headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${muxerApiKey}`
+      authorization: `Bearer ${muxerApiKey}`
     },
-    body: JSON.stringify({
-      tcurl: server,
+    data: {
+      serverUrl: url,
+      server: server,
       name: name
-    })
+    }
   })
-  .then((response) => {
-      return response.json();
-  })
-  .then((data) => {
-      return data;
-  }).catch((e) => {
-      console.error(e);
+  .then(data => {
+    return data;
+  }).catch(e => {
+    console.error(e);
   })
   return postObject;
 }
 
 const updateLive = async (username, live, transcodeKey) => {
-  const postObject = await axios(`http://10.132.146.231:8080/admin`, {
-    method: 'POST',
+  const postObject = await axios({
+    method: "POST",
+    url: `http://10.132.146.231:8080/admin`,
     headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${transcodeKey}`
+      authorization: `Bearer ${transcodeKey}`
     },
-    body: JSON.stringify({
+    data: {
       action: 'live',
       username: username,
       live: live
-    })
+    }
   })
-  .then((response) => {
-      return response.json();
-  })
-  .then((data) => {
+  .then(data => {
       return data;
-  }).catch((e) => {
+  }).catch(e => {
       console.error(e);
   })
   return postObject;
@@ -248,8 +241,8 @@ module.exports.stats = function(app) {
   return async function(req, res, next) {
     if(!req.headers['authorization']) {
       return res.status(401).json({
-          error: true,
-          errorMsg: 'no key'
+        error: true,
+        errorMsg: 'no key'
       });
     }
 
@@ -258,49 +251,38 @@ module.exports.stats = function(app) {
 
     if (transcodeKey != apiKey) {
       return res.status(403).json({
-          error: true,
-          errorMsg: 'wrong key'
+        error: true,
+        errorMsg: 'wrong key'
       });
     }
 
     if (!req.body.name) {
       return res.status(401).json({
-          error: true,
-          errorMsg: 'no name'
+        error: true,
+        errorMsg: 'no name'
       });
+    }
+
+    if(!req.body.server) {
+      return res.status(400).json({
+        error: true,
+        errorMsg: "no server"
+      })
     }
   
     const basicAuth = app.get('muxerAuth');
 
-    const server = await getServer(req.body.name, app.get('muxerApiKey'));
-    if(!server) {
-      return res.status(400).json({
-          error: true,
-          errorMsg: "no server object"
-      })
-    }
-    if(server.error) {
-      return res.status(404).json({
-          error: true,
-          errorMsg: "no server found"
-      })
-    }
-
-    let ingest = server.ingest.substring(7, server.ingest.lastIndexOf('/'))
-
-    await axios(`https://${basicAuth}@${ingest}/stat`, {
-      method: 'GET',
+    await axios({
+      method: "GET",
+      url: `https://${basicAuth}@${req.body.server}.angelthump.com/stat`,
       headers: {
         'Content-Type': 'text/xml'
       }
     })
-    .then((response) => {
-      return response.text();
-    })
-    .then((data) => {
+    .then(response => {
       const parser = require('xml2json');
 
-      const jsonResponse = parser.toJson(data, {
+      const jsonResponse = parser.toJson(response.data, {
         object: true,
         reversible: false,
         coerce: false,
@@ -334,50 +316,26 @@ module.exports.stats = function(app) {
         error: true,
         errorMsg: "no stats found"
       })
-    }).catch((e) => {
+    }).catch(e => {
       res.status(500).send("oopsie woopsie");
         console.error(e);
     })
   };
 };
 
-async function getServer(username, muxerApiKey) {
-  const postObject = await axios(`http://10.132.4.25:3030/v1/mux/ingest`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${muxerApiKey}`
-    },
-    body: JSON.stringify({
-      name: username
-    })
-  }).then((response) => {
-    return response.json();
-  })
-  .then((data) => {
-    return data;
-  }).catch((e) => {
-    console.error(e);
-  })
-  return postObject;
-}
-
 const doneMuxing = async (name, muxerApiKey) => {
-  const postObject = await axios(`http://muxer-api.angelthump.com:3030/v1/mux/done`, {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${muxerApiKey}`
-      },
-      body: JSON.stringify({name: name})
+  const postObject = await axios({
+    method:"DELETE",
+    url: `https://muxer-api.angelthump.com/v2/mux/done`,
+    headers: {
+      authorization: `Bearer ${muxerApiKey}`
+    },
+    data: {name: name}
   })
-  .then((response) => {
-      return response.json();
-  })
-  .then((data) => {
-      return data;
-  }).catch((e) => {
-      console.error(e);
+  .then(data => {
+    return data;
+  }).catch(e => {
+    console.error(e);
   })
   return postObject;
 }

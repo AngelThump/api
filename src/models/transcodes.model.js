@@ -8,7 +8,10 @@ module.exports = function (app) {
   const { Schema } = mongooseClient;
   const schema = new Schema({
     username: {type: String, required: true},
-    dropletId: {type: Number, required: true}
+    dropletId: {type: String, required: true},
+    transcoding: {type: Boolean},
+    ingest: {type: Object},
+    transcodeReady: {type: Boolean, default: false}
   }, {
     timestamps: true
   });
