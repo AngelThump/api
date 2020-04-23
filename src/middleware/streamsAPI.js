@@ -1,4 +1,8 @@
 const axios = require('axios');
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    // application specific logging here
+});
 
 module.exports.streams = function(app) {
 	return async function(req, res, next) {
@@ -113,7 +117,7 @@ module.exports.stream = function(app) {
 		}
 
 		app.service('streams')
-		.patch(stream._id, {
+		.patch(streams[0]._id, {
 			viewer_count: viewers,
 			user: userObject
 		})

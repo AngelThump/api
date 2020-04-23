@@ -84,6 +84,19 @@ module.exports.stream = function(app) {
     }
 
     const username = user.username;
+
+    let userObject = {
+			id: user.id,
+			username: user.username,
+			display_name: user.display_name,
+			offline_banner_url: user.offline_banner_url,
+			profile_logo_url: user.profile_logo_url,
+			title: user.title,
+			angel: user.angel,
+			nsfw: user.nsfw,
+			banned: user.banned,
+			password_protect: user.password_protect,
+		}
     
     app.service('streams').create({
       ingest: {
@@ -97,6 +110,7 @@ module.exports.stream = function(app) {
       thumbnail_url: `https://thumbnail.angelthump.com/thumbnails/${username}.jpeg`,
       stream_key: stream_key,
       viewer_count: 0,
+      user: userObject
     }).then(async () => {
       res.redirect(username);
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
