@@ -31,9 +31,9 @@ module.exports.ban = function(app) {
 
     const ingestServer =
     await app.service('streams').find({
-      query: { "user.username": requested_username}
+      query: { "username": requested_username}
     }).then(streams => {
-      return streams.data[0].ingest.server;
+      return streams[0].ingest.server;
     }).catch(error => {
       console.error(error);
     })
@@ -196,9 +196,9 @@ module.exports.drop = function(app) {
 
     const ingestServer =
     await app.service('streams').find({
-      query: { "user.username": requested_username}
+      query: { "username": requested_username}
     }).then(streams => {
-      return streams.data[0].ingest.server;
+      return streams[0].ingest.server;
     }).catch(error => {
       console.error(error);
     })
