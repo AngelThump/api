@@ -110,8 +110,11 @@ module.exports.stream = function(app) {
         channel: user.twitch.channel
       }
     }
+
+    res.redirect(username);
+    console.log(`${username} is now live`)
     
-    app.service('streams').create({
+    await app.service('streams').create({
       ingest: {
         server: req.query.server,
         url: `rtmp://${req.query.server}.angelthump.com/live`
@@ -125,8 +128,6 @@ module.exports.stream = function(app) {
       viewer_count: 0,
       user: userObject
     }).then(async () => {
-      res.redirect(username);
-      console.log(`${username} is now live`)
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
       await updateLive(username, true, app.get('transcodeKey'))
     }).catch(e => {

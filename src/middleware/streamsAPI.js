@@ -4,9 +4,8 @@ module.exports.streams = function(app) {
 	return async function(req, res, next) {
 		const streams =
 		await app.service('streams').find({
-			query: { type: "live" },
-			paginate: false,
-			sort: {
+			query: {},
+			$sort: {
 				viewer_count: -1
 			}
 		}).then(streams => {

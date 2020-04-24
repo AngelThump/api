@@ -4,7 +4,9 @@ const dispatch = require('./dispatch');
 module.exports = {
   before: {
     all: [disallow('external')],
-    find: [],
+    find: [context => {
+      context.params.query.$sort = { viewer_count: -1 }
+    }],
     get: [],
     create: [],
     update: [],
