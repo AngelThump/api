@@ -111,3 +111,5 @@ $RECYCLE.BIN/
 lib/
 data/
 config/*
+
+.env

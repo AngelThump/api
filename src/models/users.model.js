@@ -1,44 +1,147 @@
-// users-model.js - A mongoose model
-//
-// See http://mongoosejs.com/docs/models.html
+// See http://docs.sequelizejs.com/en/latest/docs/models-definition/
 // for more of what you can do here.
+const Sequelize = require('sequelize');
+const DataTypes = Sequelize.DataTypes;
+const { v4: uuidv4 } = require('uuid');
+
 module.exports = function (app) {
-  const mongooseClient = app.get('mongooseClient');
-  const users = new mongooseClient.Schema({
-    email: {type: String, unique: true, lowercase: true},
-    username: { type: String, required: true, unique: true, uniqueCaseInsensitive: true},
-    password: { type: String },
-    permissions: {type: Array},
-    streamkey: { type: String, unique: true},
-    isVerified: { type: Boolean, default: false },
-    verifyToken: { type: String },
-    verifyExpires: { type: Date },
-    verifyChanges: { type: Object },
-    resetToken: { type: String },
-    resetExpires: { type: Date },
-    banned:    {type: Boolean, 'default': false},
-    partner: {type: Boolean, 'default': false},
-    transcode: {type: Boolean, 'default': false},
-    playerTranscodeReady: {type:Boolean, 'default': false},
-    streamPassword: {type: String},
-    passwordProtected: {type: Boolean, 'default': false},
-    title: {type: String},
-    live: {type: Boolean, 'default': false},
-    poster: {type: String, 'default': ""},
-    createdAt: { type: Date, 'default': Date.now },
-    updatedAt: { type: Date, 'default': Date.now },
-    patronTier: {type: Number},
-    isPatron: {type: Boolean, 'default': false},
-    isPatreonLinked: {type: Boolean, 'default': false},
-    patreon: {type: Object},
-    isTwitchLinked: {type: Boolean, 'default': false},
-    twitch: {type: Object},
-    ingestServer: {type: String},
-    ingest: {type: Object, 'default': {live: false}},
-    bans: {type: Array, 'default': []}
+  const sequelizeClient = app.get('sequelizeClient');
+  const users = sequelizeClient.define('users', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: uuidv4(),
+      allowNull: false,
+      primaryKey: true
+    },
+    username: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    password: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    display_name: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    type: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: ''
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    verifyToken: {
+      type: DataTypes.CHAR,
+      allowNull: true
+    },
+    verifyShortToken: {
+      type: DataTypes.CHAR,
+      allowNull: true
+    },
+    verifyExpires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    verifyChanges: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: []
+    },
+    resetToken: {
+      type: DataTypes.CHAR,
+      allowNull: true
+    },
+    resetShortToken: {
+      type: DataTypes.CHAR,
+      allowNull: true
+    },
+    resetExpires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    title: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      defaultValue: 'First Stream on AngelThump!'
+    },
+    angel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    stream_key: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    banned: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    offline_banner_url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: null
+    },
+    profile_logo_url: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: null
+    },
+    followers: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      defaultValue: 0
+    },
+    stream_password: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    password_protect: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true
+    },
+    nsfw: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    bans: {
+      type: DataTypes.ARRAY(DataTypes.TEXT),
+      allowNull: false,
+      defaultValue: []
+    },
+    patreon: {
+      type: DataTypes.JSONB,
+      allowNull: true
+    },
+    twitch: {
+      type: DataTypes.JSONB,
+      allowNull: true
+    }
   }, {
-    timestamps: true
+    timestamps: true,
+    hooks: {
+      beforeCount(options) {
+        options.raw = true;
+      }
+    }
   });
 
-  return mongooseClient.model('users', users);
+  // eslint-disable-next-line no-unused-vars
+  users.associate = function (models) {
+    // Define associations here
+    // See http://docs.sequelizejs.com/en/latest/docs/associations/
+  };
+
+  return users;
 };

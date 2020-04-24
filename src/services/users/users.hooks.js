@@ -1,39 +1,30 @@
-const { discard , iff, isProvider, disallow } = require('feathers-hooks-common');
-const { setField } = require('feathers-authentication-hooks');
-const { authenticate } = require('@feathersjs/authentication');
+const { iff, isProvider, disallow } = require('feathers-hooks-common');
 const { protect } = require('@feathersjs/authentication-local').hooks;
+const dispatch = require('./dispatch');
 
-const restrictToOwner = [
-  setField({
-    from: 'params.user._id',
-    as: 'params.query._id'
-  })
-];
 module.exports = {
   before: {
     all: [],
-    find: [ authenticate('jwt'), ...restrictToOwner ],
-    get: [ ...restrictToOwner ],
-    create: [],
-    update: [ authenticate('jwt'), ...restrictToOwner, disallow('external') ],
-    patch: [ authenticate('jwt'), ...restrictToOwner ],
-    remove: [ authenticate('jwt'), ...restrictToOwner ]
+    find: [],
+    get: [],
+    create: [disallow()],
+    update: [disallow()],
+    patch: [disallow('external')],
+    remove: [disallow()]
   },
 
   after: {
-    all: [
-      protect('password')
-    ],
+    all: [iff(isProvider('external'), dispatch()), protect('password')],
     find: [],
     get: [],
     create: [],
-    update: [iff(isProvider('external'), discard('streamkey', 'email', 'verifyToken', 'verifyExpires', 'verifyChanges', 'resetToken', 'resetExpires', 'streamPassword', 'ingestServer', 'bans', 'ingest')),],
+    update: [],
     patch: [],
-    remove: [iff(isProvider('external'), discard('streamkey', 'email', 'verifyToken', 'verifyExpires', 'verifyChanges', 'resetToken', 'resetExpires', 'streamPassword', 'ingestServer', 'bans', 'ingest')),]
+    remove: []
   },
 
   error: {
-    all: [],
+    all: [iff(isProvider('external'), dispatch()), protect('password')],
     find: [],
     get: [],
     create: [],
