@@ -126,8 +126,9 @@ module.exports.stream = function(app) {
       user: userObject
     }).then(async () => {
       res.redirect(username);
+      console.log(`${username} is now live`)
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
-      updateLive(username, true, app.get('transcodeKey'))
+      await updateLive(username, true, app.get('transcodeKey'))
     }).catch(e => {
       console.error(e.message);
       return res.status(500).json({
@@ -152,7 +153,7 @@ module.exports.done = function(app) {
     const streamService = app.service('streams');
 
     const streams = await streamService.find({
-      stream_key: stream_key
+      query: { stream_key: stream_key }
     })
     .then(streams => {
       return streams
@@ -183,8 +184,9 @@ module.exports.done = function(app) {
       console.error(e.message);
     })
 
-    doneMuxing(stream.username, app.get('muxerApiKey'))
-    updateLive(username, false, app.get('transcodeKey'))
+    console.log(`${stream.username} is now not live`)
+    await doneMuxing(stream.username, app.get('muxerApiKey'))
+    await updateLive(stream.username, false, app.get('transcodeKey'))
 
     /*
     const metadata = app.service('metadata')

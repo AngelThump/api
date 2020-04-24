@@ -77,7 +77,9 @@ app.configure(authentication);
 app.configure(services);
 
 // Configure a middleware for 404s and the error handler
-app.use(express.notFound());
+app.use(function (req, res, next) {
+    res.status(404).send("Sorry can't find that!")
+})
 app.use(express.errorHandler({ logger }));
 
 app.hooks(appHooks);

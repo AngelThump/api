@@ -7,7 +7,7 @@ module.exports.streams = function(app) {
 			query: { type: "live" },
 			paginate: false,
 			sort: {
-				viewers: -1
+				viewer_count: -1
 			}
 		}).then(streams => {
 			return streams;
