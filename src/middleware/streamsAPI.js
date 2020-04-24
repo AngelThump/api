@@ -1,8 +1,4 @@
 const axios = require('axios');
-process.on('unhandledRejection', function(reason, p){
-    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
-    // application specific logging here
-});
 
 module.exports.streams = function(app) {
 	return async function(req, res, next) {
@@ -51,6 +47,32 @@ module.exports.stream = function(app) {
 			});
 		}
 
+		let userObject = {
+			id: user.id,
+			username: user.username,
+			display_name: user.display_name,
+			offline_banner_url: user.offline_banner_url,
+			profile_logo_url: user.profile_logo_url,
+			title: user.title,
+			angel: user.angel,
+			nsfw: user.nsfw,
+			banned: user.banned,
+			password_protect: user.password_protect,
+		}
+
+		if(user.patreon) {
+			userObject.patreon = {
+				isPatron: user.patreon.isPatron,
+				tier: user.patreon.tier
+			}
+		}
+
+		if(user.twitch) {
+			userObject.twitch = {
+				channel: user.twitch.channel
+			}
+		}
+
 		const streams =
 		await app.service('streams').find({
 			query: { 'username': requested_username }
@@ -65,7 +87,8 @@ module.exports.stream = function(app) {
 		if(streams.length === 0) {
 			return res.json({
 				username: requested_username,
-				type: ""
+				type: "",
+				user: userObject
 			});
 		}
 
@@ -85,19 +108,6 @@ module.exports.stream = function(app) {
 				errorMsg: "Something went wrong with viewer api"
 			})
 		})
-
-		let userObject = {
-			id: user.id,
-			username: user.username,
-			display_name: user.display_name,
-			offline_banner_url: user.offline_banner_url,
-			profile_logo_url: user.profile_logo_url,
-			title: user.title,
-			angel: user.angel,
-			nsfw: user.nsfw,
-			banned: user.banned,
-			password_protect: user.password_protect,
-		}
 
 		if(user.patreon) {
 			userObject.patreon = {

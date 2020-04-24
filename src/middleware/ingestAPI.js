@@ -97,6 +97,19 @@ module.exports.stream = function(app) {
 			banned: user.banned,
 			password_protect: user.password_protect,
 		}
+
+    if(user.patreon) {
+      userObject.patreon = {
+        isPatron: user.patreon.isPatron,
+        tier: user.patreon.tier
+      }
+    }
+
+    if(user.twitch) {
+      userObject.twitch = {
+        channel: user.twitch.channel
+      }
+    }
     
     app.service('streams').create({
       ingest: {
@@ -114,7 +127,7 @@ module.exports.stream = function(app) {
     }).then(async () => {
       res.redirect(username);
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
-      //updateLive(username, true, app.get('transcodeKey'))
+      updateLive(username, true, app.get('transcodeKey'))
     }).catch(e => {
       console.error(e.message);
       return res.status(500).json({
@@ -171,7 +184,7 @@ module.exports.done = function(app) {
     })
 
     doneMuxing(stream.username, app.get('muxerApiKey'))
-    //updateLive(username, false, app.get('transcodeKey'))
+    updateLive(username, false, app.get('transcodeKey'))
 
     /*
     const metadata = app.service('metadata')
