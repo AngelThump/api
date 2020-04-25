@@ -86,21 +86,22 @@ module.exports.ban = function(app) {
           });
         })
 
-        /*
         setTimeout(()=> {
-          axios.post({
-            url: 'https://10.132.146.231/admin',
-            insecure: true,
-            rejectUnauthorized: false,
+          axios({
+            method: "POST",
+            url: 'https://viewer-api.angelthump.com/admin',
             headers: {
-              'Authorization': 'Bearer ' + apiKey
+              authorization: `Bearer ${app.get(adminKey)}`
             },
-            json: {
-              username: requested_username,
-              action: 'reload'
+            data: {
+              action: 'reload',
+              channel: channel
             }
+          }).catch(e => {
+            console.error(e.response.data);
           });
-        }, 5000);*/
+        }, 5000);
+
       }).catch((e) => {
         console.error(e);
         res.status(200).json({
