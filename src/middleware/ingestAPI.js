@@ -129,7 +129,7 @@ module.exports.stream = function(app) {
       user: userObject
     }).then(async () => {
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
-      await updateLive(username, true, app.get('transcodeKey'))
+      await updateLive(username, true, app.get('adminKey'))
     }).catch(e => {
       console.error(e.message);
       return res.status(500).json({
@@ -187,7 +187,7 @@ module.exports.done = function(app) {
 
     console.log(`${stream.username} is now not live`)
     await doneMuxing(stream.username, app.get('muxerApiKey'))
-    await updateLive(stream.username, false, app.get('transcodeKey'))
+    await updateLive(stream.username, false, app.get('adminKey'))
 
     /*
     const metadata = app.service('metadata')
@@ -246,16 +246,16 @@ const mux = async(url, server, name, muxerApiKey) => {
   return postObject;
 }
 
-const updateLive = async (username, live, transcodeKey) => {
+const updateLive = async (channel, live, adminKey) => {
   const postObject = await axios({
     method: "POST",
-    url: `http://10.132.146.231:8080/admin`,
+    url: `https://viewer-api.angelthump.com/admin`,
     headers: {
-      authorization: `Bearer ${transcodeKey}`
+      authorization: `Bearer ${adminKey}`
     },
     data: {
       action: 'live',
-      username: username,
+      channel: channel,
       live: live
     }
   })
