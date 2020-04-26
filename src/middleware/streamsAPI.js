@@ -57,7 +57,8 @@ module.exports.stream = function(app) {
 			nsfw: user.nsfw,
 			banned: user.banned,
 			password_protect: user.password_protect,
-			followers: user.followers
+			followers: user.followers,
+			unlist: user.unlist
 		}
 
 		if(user.patreon) {

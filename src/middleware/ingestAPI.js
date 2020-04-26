@@ -95,7 +95,8 @@ module.exports.stream = function(app) {
 			angel: user.angel,
 			nsfw: user.nsfw,
 			banned: user.banned,
-			password_protect: user.password_protect,
+      password_protect: user.password_protect,
+      unlist: user.unlist
 		}
 
     if(user.patreon) {

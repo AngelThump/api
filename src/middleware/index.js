@@ -39,6 +39,7 @@ module.exports = function (app) {
   app.get('/v2/streams/:username', limiter({lookup: 'headers.x-forwarded-for', total: 1000, expire: 30 * 1000}), redisAPICache('1 seconds'), streamsAPI.stream(app));
   
   app.patch('/v2/user/title', authenticate('jwt'), userAPI.patchTitle(app));
+  app.patch('/v2/user/unlist', authenticate('jwt'), userAPI.patchUnlist(app));
   app.patch('/v2/user/password_protect', authenticate('jwt'), userAPI.patchPasswordProtect(app));
   app.patch('/v2/user/stream_password', authenticate('jwt'), userAPI.patchStreamPassword(app));
   app.post('/v2/user/stream_password', userAPI.checkStreamPassword(app));
@@ -56,6 +57,7 @@ module.exports = function (app) {
   app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
   app.get('/v2/ingest', redisAPICache('1 minutes'), ingestAPI.list(app));
+  app.get('/v2/ingests', redisAPICache('1 minutes'), ingestAPI.list(app));
   app.post('/v2/ingest/stats', ingestAPI.stats(app));
   app.post('/v2/ingest', ingestAPI.stream(app));
   app.post('/v2/ingest/done', ingestAPI.done(app));

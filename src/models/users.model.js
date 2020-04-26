@@ -127,6 +127,11 @@ module.exports = function (app) {
     twitch: {
       type: DataTypes.JSONB,
       allowNull: true
+    },
+    unlist: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   }, {
     timestamps: true,

@@ -51,7 +51,8 @@ module.exports.patchPasswordProtect = function(app) {
 		}
 
 		app.service('users').patch(user.id, {
-			password_protect: req.body.password_protect
+			password_protect: req.body.password_protect,
+			unlist: req.body.password_protect
 		}).then(() => {
 			return res.json({
                 error: false,
@@ -139,6 +140,42 @@ module.exports.checkStreamPassword = function(app) {
 			return res.json({
                 error: true,
                 errorMsg: "something went wrong checking stream password"
+            })
+		});
+	};
+};
+
+module.exports.patchUnlist = function(app) {
+	return function(req, res, next) {
+
+		if(typeof req.body.unlist === 'undefined') {
+            return res.json({
+                error: true,
+                errorMsg: "no unlist in body"
+            })
+		}
+		
+		const user = req.user;
+
+		if(!user.patreon.isPatron && user.patreon.tier < 2) {
+			return res.json({
+                error: true,
+                errorMsg: "not a patron"
+            })
+		}
+
+		app.service('users').patch(user.id, {
+			unlist: req.body.unlist
+		}).then(() => {
+			return res.json({
+                error: false,
+                errorMsg: ""
+            })
+		}).catch(e => {
+			console.error(e);
+			return res.json({
+                error: true,
+                errorMsg: "something went wrong trying to patch unlist in users service"
             })
 		});
 	};
