@@ -9,9 +9,9 @@ module.exports.ban = function(app) {
     }
 
     const apiKey = req.headers.authorization.split(' ')[1];
-    const adminKeys = app.get("adminKeys");
+    const adminKey = app.get("adminKey");
     
-    if (!adminKeys.includes(apiKey)) {
+    if (adminKey !== apiKey) {
       res.status(403).send('wrong key');
       return;
     }
@@ -33,17 +33,21 @@ module.exports.ban = function(app) {
     await app.service('streams').find({
       query: { "username": requested_username}
     }).then(streams => {
-      return streams[0].ingest.server;
+      if(streams.total !== 0) {
+        return streams[0].ingest.server;
+      }
+      return null;
     }).catch(error => {
       console.error(error);
     })
 
+    /*
     if(!ingestServer) {
       return res.json({
         error: true,
         errorMSG: "Something went wrong with streams service"
       })
-    }
+    }*/
 
     app.service('users').find({
       query: { username: requested_username }
@@ -72,6 +76,12 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(async () => {
+        if(!ingestServer) {
+          return res.json({
+            error: false,
+            errorMSG: ""
+          })
+        }
         await axios.get(`https://${app.get('muxerAuth')}@${ingestServer}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
         .then(() => {
           res.status(200).json({
@@ -127,9 +137,9 @@ module.exports.unban = function(app) {
     }
 
     const apiKey = req.headers.authorization.split(' ')[1];
-    const adminKeys = app.get("adminKeys");
+    const adminKey = app.get("adminKey");
     
-    if (!adminKeys.includes(apiKey)) {
+    if (adminKey !== apiKey) {
       res.status(403).send('wrong key');
       return;
     }
@@ -181,9 +191,9 @@ module.exports.drop = function(app) {
     }
 
     const apiKey = req.headers.authorization.split(' ')[1];
-    const adminKeys = app.get("adminKeys");
+    const adminKey = app.get("adminKey");
     
-    if (!adminKeys.includes(apiKey)) {
+    if (adminKey !== apiKey) {
       res.status(403).send('wrong key');
       return;
     }

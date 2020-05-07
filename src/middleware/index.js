@@ -53,8 +53,6 @@ module.exports = function (app) {
   app.post('/v2/transcode/add', transcodeAPI.add(app));
   app.patch('/v2/transcode/update', transcodeAPI.update(app));
   app.delete('/v2/transcode/remove', transcodeAPI.remove(app));
-
-  app.post('/v2/patreon/webhooks', patreonWebhooks(app));
   
   app.get('/v2/ingest', redisAPICache('1 minutes'), ingestAPI.list(app));
   app.get('/v2/ingests', redisAPICache('1 minutes'), ingestAPI.list(app));

@@ -133,10 +133,11 @@ module.exports.stream = function(app) {
       await updateLive(username, true, app.get('adminKey'))
     }).catch(e => {
       console.error(e.message);
+      /*
       return res.status(500).json({
         "error": true,
         errorMsg: "something went terribly wrong in streams service"
-      });
+      });*/
     })
   };
 };
