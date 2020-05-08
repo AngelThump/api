@@ -25,6 +25,6 @@ Getting up and running is as easy as 1, 2, 3.
 
 ## License
 
-Copyright (c) 2019
+Copyright (c) 2020
 
 Licensed under the [MIT license](LICENSE).

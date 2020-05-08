@@ -2,7 +2,6 @@ const admin = require('./admin');
 const transcodeAPI = require('./transcodeAPI');
 const redisClient = require('redis').createClient();
 const ingestAPI = require('./ingestAPI');
-const patreonWebhooks = require('./patreonWebhooks');
 const { authenticate } = require('@feathersjs/express');
 const userAPI = require('./userAPI');
 const apicache = require('apicache');
@@ -19,7 +18,7 @@ module.exports = function (app) {
     total: 10,
     expire: 1000 * 30,
     onRateLimited: function (req, res, next) {
-      next({ message: 'Rate limit exceeded', code: 429 })
+      res.status(429).json({message: 'Rate limited'})
     }
   });
 
@@ -30,7 +29,7 @@ module.exports = function (app) {
     total: 10,
     expire: 1000 * 30,
     onRateLimited: function (req, res, next) {
-      next({ message: 'Rate limit exceeded', code: 429 })
+      res.status(429).json({message: 'Rate limited'})
     }
   });
   

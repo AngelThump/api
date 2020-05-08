@@ -105,7 +105,7 @@ module.exports.ban = function(app) {
             },
             data: {
               action: 'reload',
-              channel: channel
+              channel: requested_username
             }
           }).catch(e => {
             console.error(e.response.data);
