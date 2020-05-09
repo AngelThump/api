@@ -10,17 +10,6 @@ const streamsAPI = require('./streamsAPI');
 module.exports = function (app) {
   const limiter = require('express-limiter')(app, redisClient);
   const redisAPICache = apicache.options({ redisClient: redisClient }).middleware;
-  
-  limiter({
-    path: '*',
-    method: 'post',
-    lookup: 'headers.x-forwarded-for',
-    total: 10,
-    expire: 1000 * 30,
-    onRateLimited: function (req, res, next) {
-      res.status(429).json({message: 'Rate limited'})
-    }
-  });
 
   limiter({
     path: '*',
@@ -41,11 +30,11 @@ module.exports = function (app) {
   app.patch('/v2/user/unlist', authenticate('jwt'), userAPI.patchUnlist(app));
   app.patch('/v2/user/password_protect', authenticate('jwt'), userAPI.patchPasswordProtect(app));
   app.patch('/v2/user/stream_password', authenticate('jwt'), userAPI.patchStreamPassword(app));
-  app.post('/v2/user/stream_password', userAPI.checkStreamPassword(app));
+  app.post('/v2/user/stream_password', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 5 * 1000}), userAPI.checkStreamPassword(app));
 
-  app.post('/v2/admin/ban', admin.ban(app));
-  app.post('/v2/admin/unban', admin.unban(app));
-  app.post('/v2/admin/drop', admin.drop(app));
+  app.post('/v2/admin/ban', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 30 * 1000}), admin.ban(app));
+  app.post('/v2/admin/unban', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 30 * 1000}), admin.unban(app));
+  app.post('/v2/admin/drop', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 30 * 1000}), admin.drop(app));
 
   app.post('/v2/transcode', transcodeAPI.transcode(app));
   app.patch('/v2/transcode/ready', transcodeAPI.transcodeReady(app));
@@ -53,10 +42,10 @@ module.exports = function (app) {
   app.patch('/v2/transcode/update', transcodeAPI.update(app));
   app.delete('/v2/transcode/remove', transcodeAPI.remove(app));
   
-  app.get('/v2/ingest', redisAPICache('1 minutes'), ingestAPI.list(app));
+  app.get('/v2/ingest',  redisAPICache('1 minutes'), ingestAPI.list(app));
   app.get('/v2/ingests', redisAPICache('1 minutes'), ingestAPI.list(app));
   app.post('/v2/ingest/stats', ingestAPI.stats(app));
-  app.post('/v2/ingest', ingestAPI.stream(app));
+  app.post('/v2/ingest', limiter({total: 3, expire: 5000, lookup: 'body.addr'}), ingestAPI.stream(app));
   app.post('/v2/ingest/done', ingestAPI.done(app));
 
 };
