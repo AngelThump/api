@@ -33,7 +33,7 @@ module.exports.ban = function(app) {
     await app.service('streams').find({
       query: { "username": requested_username}
     }).then(streams => {
-      if(streams.total !== 0) {
+      if(streams.length !== 0) {
         return streams[0].ingest.server;
       }
       return null;
@@ -96,6 +96,7 @@ module.exports.ban = function(app) {
           });
         })
 
+        /*
         setTimeout(()=> {
           axios({
             method: "POST",
@@ -110,7 +111,7 @@ module.exports.ban = function(app) {
           }).catch(e => {
             console.error(e.response.data);
           });
-        }, 5000);
+        }, 5000);*/
 
       }).catch((e) => {
         console.error(e);
