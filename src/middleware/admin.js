@@ -213,6 +213,7 @@ module.exports.drop = function(app) {
       return streams[0].ingest.server;
     }).catch(error => {
       console.error(error);
+      return null;
     })
 
     if(!ingestServer) {

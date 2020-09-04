@@ -51,6 +51,8 @@
     "feathers-hooks-common": "^5.0.2",
     "feathers-mongoose": "^8.3.0",
     "feathers-sequelize": "^6.1.0",
+    "geoip-lite": "^1.4.2",
+    "haversine": "^1.1.1",
     "helmet": "^3.22.0",
     "mongodb-core": "^3.2.7",
     "mongoose": "^5.9.10",
