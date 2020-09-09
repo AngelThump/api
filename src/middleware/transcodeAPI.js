@@ -164,6 +164,96 @@ module.exports.transcodeReady = function(app) {
 	};
 };
 
+module.exports.addInputs = function(app) {
+	return function(req, res, next) {
+        if(!req.headers['authorization']) {
+            res.json({
+                error: true,
+                errorMsg: "missing authorization header"
+            })
+            return;
+        }
+
+        const apiKey = req.headers.authorization.split(' ')[1];
+        const transcodeKey = app.get("transcodeKey");
+
+        if (!transcodeKey.includes(apiKey)) {
+            res.json({
+                error: true,
+                errorMsg: "wrong authorization header"
+            })
+            return;
+        }
+
+        if(!req.body.stream) {
+            res.json({
+                error: true,
+                errorMsg: "no stream"
+            })
+            return;
+        }
+
+        if (!req.body.inputs) {
+            res.json({
+                error: true,
+                errorMsg: "no inputs"
+            })
+            return;
+        }
+
+        app.service('streams').find({
+            query: { username: req.body.stream }
+        }).then(streams => {
+            if(!streams.length > 0) {
+                res.json({
+                    error: true,
+                    errorMsg: "stream not found"
+                })
+                return;
+            }
+            const stream = streams[0];
+            app.service('streams').patch(stream._id, {
+                transcodeInputs: req.body.inputs
+            }).then(() => {
+                res.json({
+                    error: false,
+                    errorMsg: "",
+                    successMsg: "INPUTS ADDED"
+                })
+            }).catch((e) => {
+                res.json({
+                    error: true,
+                    errorMsg: "something went wrong with the streams service"
+                })
+            });
+        }).catch(e => {
+            console.error(e);
+            res.json({
+                error: true,
+                errorMsg: "something went wrong with the streams service"
+            })
+            return;
+        });
+
+
+        app.service('transcodes').find({
+            query: { username: req.body.username }
+        }).then(streams => {
+            if(!streams.length > 0) {
+                return;
+            }
+            const stream = streams[0];
+            app.service('transcodes').patch(stream._id, {
+                inputs: req.body.inputs
+            }).catch((e) => {
+                console.error(e);
+            });
+        }).catch(e => {
+            console.error(e);
+        });
+	};
+};
+
 module.exports.add = function(app) {
 	return async function(req, res, next) {
         if(!req.headers['authorization']) {

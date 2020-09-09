@@ -37,6 +37,7 @@ module.exports = function (app) {
   app.post('/v2/admin/drop', limiter({lookup: 'headers.x-forwarded-for', total: 5, expire: 30 * 1000}), admin.drop(app));
 
   app.post('/v2/transcode', transcodeAPI.transcode(app));
+  app.post('/v2/transcode/inputs', transcodeAPI.addInputs(app));
   app.patch('/v2/transcode/ready', transcodeAPI.transcodeReady(app));
   app.post('/v2/transcode/add', transcodeAPI.add(app));
   app.patch('/v2/transcode/update', transcodeAPI.update(app));

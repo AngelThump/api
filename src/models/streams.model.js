@@ -13,6 +13,7 @@ module.exports = function (app) {
     ip_address: {type: String},
     transcoding: {type: Boolean, required: true},
     transcodeReady: {type: Boolean, default: false},
+    transcodeInputs: {type: Array, default: []},
     type: {type: String},
     viewer_count: {type: Number},
     thumbnail_url: {type: String},

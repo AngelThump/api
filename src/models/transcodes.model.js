@@ -11,7 +11,8 @@ module.exports = function (app) {
     dropletId: {type: String, required: true},
     transcoding: {type: Boolean},
     ingest: {type: Object},
-    transcodeReady: {type: Boolean, default: false}
+    transcodeReady: {type: Boolean, default: false},
+    inputs: {type: Array, default: []}
   }, {
     timestamps: true
   });

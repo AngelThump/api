@@ -128,19 +128,77 @@ module.exports.stream = function(app) {
       stream_key: stream_key,
       viewer_count: 0,
       user: userObject
-    }).then(async () => {
+    }).then(async (stream) => {
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
-      await updateLive(username, true, app.get('adminKey'))
+      await updateLive(username, true, app.get('adminKey'));
+
+      setTimeout(async () => {
+        let stats = await getStats(app, req.query.server, username);
+
+        let ingest = stream.ingest;
+        ingest.stats = {
+          bandwidth: stats.bandwidth,
+          framerate: stats.meta.video.frame_rate,
+          width: stats.meta.video.width,
+          height: stats.meta.video.height,
+          name: `${stats.meta.video.height}p${stats.meta.video.frame_rate} (source)`
+        };
+
+        app.service('streams').patch(stream._id, {
+          ingest: ingest
+        }).catch(e => {
+          console.error(e);
+        })
+      }, 20000);
     }).catch(e => {
       console.error(e.message);
-      /*
-      return res.status(500).json({
-        "error": true,
-        errorMsg: "something went terribly wrong in streams service"
-      });*/
     })
   };
 };
+
+const getStats = async (app, server, username) => {
+  let stats = {};
+  await axios({
+    method: "GET",
+    url: `https://${app.get('muxerAuth')}@${server}.angelthump.com/stat`,
+    headers: {
+      'Content-Type': 'text/xml'
+    }
+  })
+  .then(response => {
+    const parser = require('xml2json');
+
+    const jsonResponse = parser.toJson(response.data, {
+      object: true,
+      reversible: false,
+      coerce: false,
+      sanitize: true,
+      trim: false,
+      arrayNotation: false,
+      alternateTextNode: false
+    });
+    const streamsObject = jsonResponse.rtmp.server.application.live.stream;
+
+    if(streamsObject) {
+      if(Array.isArray(streamsObject)) {
+        for(let stream of streamsObject) {
+          if(stream.name.toUpperCase() === username.toUpperCase()) {
+            stats.meta = stream.meta;
+            stats.bandwidth = stream.bw_video
+          }
+        }
+      } else {
+        if(streamsObject.name.toUpperCase() === username.toUpperCase()) {
+          stats.meta = streamsObject.meta;
+          stats.bandwidth = streamsObject.bw_video
+        }
+      }
+    }
+  }).catch(e => {
+    console.error(e);
+  })
+  return stats;
+}
 
 //on_publish_done
 module.exports.done = function(app) {
