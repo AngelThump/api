@@ -1,8 +1,12 @@
 module.exports.patchTitle = function(app) {
 	return function(req, res, next) {
-		let title = req.body.title;
 		if(!req.body.title) {
-            title = "";
+            title = "Untitled broadcast";
+		}
+
+		const title = req.body.title;
+		if(title.length === 0) {
+			title = "Untilted broadcast";
 		}
 		
 		if(title.length > 140) {
