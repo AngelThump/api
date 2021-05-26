@@ -29,25 +29,22 @@ module.exports.ban = function(app) {
     const requested_username = req.body.username;
     const reason = req.body.reason;
 
-    const ingestServer =
+    const stream =
     await app.service('streams').find({
       query: { "username": requested_username}
     }).then(streams => {
-      if(streams.length !== 0) {
-        return streams[0].ingest.server;
-      }
-      return null;
+      return streams[0];
     }).catch(error => {
       console.error(error);
+      return null;
     })
 
-    /*
-    if(!ingestServer) {
+    if(!stream) {
       return res.json({
         error: true,
         errorMSG: "Something went wrong with streams service"
       })
-    }*/
+    }
 
     app.service('users').find({
       query: { username: requested_username }
@@ -76,13 +73,7 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(async () => {
-        if(!ingestServer) {
-          return res.json({
-            error: false,
-            errorMSG: ""
-          })
-        }
-        await axios.get(`https://${app.get('muxerAuth')}@${ingestServer}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
+        await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${Buffer.from(stream._id.toString()).toString("base64")}`)
         .then(() => {
           res.status(200).json({
             error: false,
@@ -206,24 +197,24 @@ module.exports.drop = function(app) {
 
     const requested_username = req.body.username;
 
-    const ingestServer =
+    const stream =
     await app.service('streams').find({
       query: { "username": requested_username}
     }).then(streams => {
-      return streams[0].ingest.server;
+      return streams[0];
     }).catch(error => {
       console.error(error);
       return null;
     })
 
-    if(!ingestServer) {
+    if(!stream) {
       return res.json({
         error: true,
         errorMSG: "Something went wrong with streams service"
       })
     }
 
-    await axios.get(`https://${app.get('muxerAuth')}@${ingestServer}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
+    await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${Buffer.from(stream._id.toString()).toString("base64")}`)
     .then(() => {
       res.status(200).json({
         error: false,

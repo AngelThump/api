@@ -112,8 +112,8 @@ module.exports.stream = function(app) {
       }
     }
 
-    res.redirect(username);
-    console.log(`${username} is now live`)
+    //res.redirect(username);
+    //console.log(`${username} is now live`)
     
     await app.service('streams').create({
       ingest: {
@@ -129,11 +129,12 @@ module.exports.stream = function(app) {
       viewer_count: 0,
       user: userObject
     }).then(async (stream) => {
+      res.redirect(Buffer.from(stream._id.toString()).toString("base64"));
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
       await updateLive(username, true, app.get('adminKey'));
 
       setTimeout(async () => {
-        let stats = await getStats(app, req.query.server, username);
+        let stats = await getStats(app, req.query.server, Buffer.from(stream._id.toString()).toString("base64"));
 
         let ingest = stream.ingest;
         ingest.stats = {
@@ -245,7 +246,7 @@ module.exports.done = function(app) {
       console.error(e.message);
     })
 
-    console.log(`${stream.username} is now not live`)
+    //console.log(`${stream.username} is now not live`)
     await doneMuxing(stream.username, app.get('muxerApiKey'))
     await updateLive(stream.username, false, app.get('adminKey'))
 
