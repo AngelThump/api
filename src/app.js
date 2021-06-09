@@ -8,13 +8,7 @@ const logger = require('./logger');
 const feathers = require('@feathersjs/feathers');
 const configuration = require('@feathersjs/configuration');
 const express = require('@feathersjs/express');
-const bodyParser = require('body-parser');
 const socketio = require('@feathersjs/socketio');
-
-const fs = require('fs');
-const morgan = require('morgan');
-const requestIp = require('request-ip');
-const accessLogStream = fs.createWriteStream(path.join(__dirname, '../logs/access.log'), {flags: 'a'});
 const authentication = require('./authentication');
 
 const middleware = require('./middleware');
@@ -45,22 +39,12 @@ const rawBodySaver = function (req, res, buf, encoding) {
     }
 }
 
-app.use(bodyParser.json({ verify: rawBodySaver }));
-app.use(bodyParser.urlencoded({ verify: rawBodySaver, extended: true }));
-app.use(bodyParser.raw({ verify: rawBodySaver, type: '*/*' }));
+app.use(express.json({ verify: rawBodySaver }));
+app.use(express.urlencoded({ verify: rawBodySaver, extended: true }));
+app.use(express.raw({ verify: rawBodySaver, type: '*/*' }));
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', express.static(app.get('public')));
-
-//use real ip
-morgan.token('remote-addr', function (req) {
-    return requestIp.getClientIp(req);
-});
-
-//log to file
-app.use(morgan(':method :url :status :response-time ms - :res[content-length] - :remote-addr - [:date[clf]]', {stream: accessLogStream, skip: function (req, res) { 
-	return app.get('skipIPs').includes(requestIp.getClientIp(req));
-}}));
 
 // Set up Plugins and providers
 app.configure(express.rest());
