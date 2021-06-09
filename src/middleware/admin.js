@@ -39,13 +39,6 @@ module.exports.ban = function(app) {
       return null;
     })
 
-    if(!stream) {
-      return res.json({
-        error: true,
-        errorMSG: "Something went wrong with streams service"
-      })
-    }
-
     app.service('users').find({
       query: { username: requested_username }
     }).then((users) => {
@@ -73,15 +66,11 @@ module.exports.ban = function(app) {
         banned: true,
         bans: bansObject
       }).then(async () => {
-        await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${Buffer.from(stream._id.toString()).toString("base64")}`)
-        .then(() => {
-          res.status(200).json({
-            error: false,
-            errorMSG: ""
-          });
-        }).catch(e => {
+        if(!stream) return;
+        await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
+        .catch(e => {
           console.error(e);
-          return res.status(200).json({
+          return res.status(500).json({
             error: true,
             errorMSG: "something went wrong trying to drop user"
           });
@@ -106,14 +95,18 @@ module.exports.ban = function(app) {
 
       }).catch((e) => {
         console.error(e);
-        res.status(200).json({
+        res.status(500).json({
           error: true,
           errorMSG: "Something went wrong trying to patch user"
         });
       });
+      res.status(200).json({
+        error: false,
+        errorMSG: ""
+      });
     }).catch((e) => {
       console.error(e);
-      res.status(200).json({
+      res.status(404).json({
         error: true,
         errorMSG: "Something went wrong trying to find user"
       });
@@ -214,7 +207,7 @@ module.exports.drop = function(app) {
       })
     }
 
-    await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${Buffer.from(stream._id.toString()).toString("base64")}`)
+    await axios.get(`https://${app.get('muxerAuth')}@${stream.ingest.server}.angelthump.com/control/drop/publisher?app=live&name=${requested_username}`)
     .then(() => {
       res.status(200).json({
         error: false,

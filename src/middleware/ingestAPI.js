@@ -112,7 +112,7 @@ module.exports.stream = function(app) {
       }
     }
 
-    //res.redirect(username);
+    res.redirect(username);
     //console.log(`${username} is now live`)
     
     await app.service('streams').create({
@@ -129,12 +129,11 @@ module.exports.stream = function(app) {
       viewer_count: 0,
       user: userObject
     }).then(async (stream) => {
-      res.redirect(Buffer.from(stream._id.toString()).toString("base64"));
       await mux(`rtmp://${req.query.server}.angelthump.com/live`, req.query.server, username, app.get('muxerApiKey'));
       await updateLive(username, true, app.get('adminKey'));
 
       setTimeout(async () => {
-        let stats = await getStats(app, req.query.server, Buffer.from(stream._id.toString()).toString("base64"));
+        let stats = await getStats(app, req.query.server, username);
 
         let ingest = stream.ingest;
         ingest.stats = {
@@ -150,7 +149,7 @@ module.exports.stream = function(app) {
         }).catch(e => {
           console.error(e);
         })
-      }, 20000);
+      }, 25000);
     }).catch(e => {
       console.error(e.message);
     })
