@@ -83,6 +83,15 @@ module.exports.stream = function(app) {
       });
     }
 
+    //ONLY ALLOW ACCOUNT AGE > 1 WEEK OR IF PATRON.
+    if(Date.now() < new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000) {
+      if(user.patreon ? !user.patreon.isPatron && user.patreon.tier < 1 : true && !user.angel && user.type !== "admin") 
+        return res.status(403).json({
+          error: true,
+          message: "Account age is too new..."
+        }) 
+    }
+
     const username = user.username;
 
     let userObject = {
@@ -134,6 +143,8 @@ module.exports.stream = function(app) {
 
       setTimeout(async () => {
         let stats = await getStats(app, req.query.server, username);
+
+        if(!stats.meta) return;
 
         let ingest = stream.ingest;
         ingest.stats = {
