@@ -1,15 +1,16 @@
 {
   "name": "api",
-  "description": "api for angelthump",
-  "version": "1.1.0",
-  "homepage": "https://api.angelthump.com",
+  "description": "API for AngelThump",
+  "version": "1.0.0",
+  "homepage": "",
+  "private": true,
   "main": "src",
   "keywords": [
     "feathers"
   ],
   "author": {
-    "name": "",
-    "email": ""
+    "name": "TimIsOverpowered",
+    "email": "admin@angelthump.com"
   },
   "contributors": [],
   "bugs": {},
@@ -19,55 +20,45 @@
     "config": "config/"
   },
   "engines": {
-    "node": "^10.0.0",
+    "node": "^16.0.0",
     "npm": ">= 3.0.0"
   },
   "scripts": {
-    "test": "npm run eslint && NODE_ENV= npm run mocha",
-    "eslint": "eslint src/. test/. --config .eslintrc.json",
+    "test": "npm run lint && npm run mocha",
+    "lint": "eslint src/. test/. --config .eslintrc.json --fix",
     "dev": "nodemon src/",
     "start": "node src/",
-    "production": "NODE_ENV=production node src/",
-    "production-windows": "set NODE_ENV=production&&node src/",
+    "production": "cross-env NODE_ENV=production node src/",
     "mocha": "mocha test/ --recursive --exit"
   },
+  "standard": {
+    "env": [
+      "mocha"
+    ],
+    "ignore": []
+  },
   "dependencies": {
-    "@feathersjs/authentication": "^4.5.11",
-    "@feathersjs/authentication-local": "^4.5.11",
-    "@feathersjs/authentication-oauth": "^4.5.11",
+    "@feathersjs/authentication-client": "^4.5.11",
     "@feathersjs/configuration": "^4.5.11",
     "@feathersjs/errors": "^4.5.11",
     "@feathersjs/express": "^4.5.11",
     "@feathersjs/feathers": "^4.5.11",
-    "@feathersjs/rest-client": "^4.5.11",
-    "@feathersjs/socketio": "^4.5.11",
-    "aws-sdk": "^2.924.0",
-    "axios": "^0.21.1",
+    "@feathersjs/socketio-client": "^4.5.11",
+    "@feathersjs/transport-commons": "^4.5.11",
+    "apicache": "^1.6.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
-    "ejs": "^3.1.6",
-    "express-limiter": "^1.6.1",
-    "feathers-authentication-hooks": "^1.0.2",
-    "feathers-hooks-common": "^5.0.6",
-    "feathers-mongoose": "^8.3.3",
-    "feathers-sequelize": "^6.2.0",
-    "geoip-lite": "^1.4.2",
-    "haversine": "^1.1.1",
     "helmet": "^4.6.0",
-    "mongodb-core": "^3.2.7",
-    "mongoose": "^5.12.13",
-    "pg": "^8.6.0",
-    "redis": "^3.1.2",
-    "request-ip": "^2.1.3",
-    "s3-blob-store": "^4.1.1",
-    "sequelize": "^6.6.2",
+    "ioredis": "^4.28.2",
+    "rate-limiter-flexible": "^2.3.6",
     "serve-favicon": "^2.5.0",
-    "winston": "^3.3.3",
-    "xml2json": "^0.12.0"
+    "socket.io-client": "^2.4.0",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
-    "mocha": "^9.0.0",
-    "nodemon": "^2.0.7"
+    "axios": "^0.24.0",
+    "eslint": "^8.4.0",
+    "mocha": "^9.1.3",
+    "nodemon": "^2.0.15"
   }
 }
