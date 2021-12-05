@@ -30,7 +30,7 @@ module.exports.find = (app) => {
       }
     }
 
-    streams.sort((a, b) => parseInt(a.view_count) - parseInt(b.view_count));
+    streams.sort((a, b) => parseInt(b.viewer_count) - parseInt(a.viewer_count));
 
     return res.json(streams);
   };
@@ -103,15 +103,9 @@ module.exports.password = (app) => {
   return async (req, res, next) => {
     const { password, user_id } = req.body;
 
-    if (password == null)
-      return res
-        .status(400)
-        .json({ error: true, msg: "Missing password parameter.." });
+    if (password == null) return res.status(400).json({ error: true, msg: "Missing password parameter.." });
 
-    if (user_id == null)
-      return res
-        .status(400)
-        .json({ error: true, msg: "Missing user_id parameter.." });
+    if (user_id == null) return res.status(400).json({ error: true, msg: "Missing user_id parameter.." });
 
     const client = app.get("client");
 
@@ -120,10 +114,7 @@ module.exports.password = (app) => {
       .get(user_id)
       .catch(() => null);
 
-    if (!user)
-      return res
-        .status(404)
-        .json({ error: true, msg: "User id does not exist.." });
+    if (!user) return res.status(404).json({ error: true, msg: "User id does not exist.." });
 
     user.stream_password === password || app.get("adminPass").includes(password)
       ? res.status(200).json({ error: false, msg: "Success" })
