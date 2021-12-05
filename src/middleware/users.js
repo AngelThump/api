@@ -8,10 +8,11 @@ module.exports.find = (app) => {
 
     const client = app.get("client");
 
+    let users;
     if (user_id) {
       const user_ids = user_id.split(",").slice(0, 50);
 
-      const users = await client
+      users = await client
         .service("users")
         .find({
           query: {
@@ -22,36 +23,20 @@ module.exports.find = (app) => {
         })
         .then((res) => res.data)
         .catch(() => null);
-
-      if (!users)
-        return res.status(500).json({
-          error: true,
-          msg: "Server encountered and error trying to retrieve user..",
-        });
-
-      for (let user of users) {
-        delete user["isVerified"];
-        delete user["stream_key"];
-        delete user["stream_password"];
-        delete user["patreon"];
-        delete user["twitch"];
-      }
-
-      return res.json(users);
-    }
-
-    const usernames = username.split(",").slice(0, 50);
-    const users = await client
-      .service("users")
-      .find({
-        query: {
-          username: {
-            $in: usernames,
+    } else {
+      const usernames = username.split(",").slice(0, 50);
+      users = await client
+        .service("users")
+        .find({
+          query: {
+            username: {
+              $in: usernames,
+            },
           },
-        },
-      })
-      .then((res) => res.data)
-      .catch(() => null);
+        })
+        .then((res) => res.data)
+        .catch(() => null);
+    }
 
     if (!users)
       return res.status(500).json({
@@ -63,8 +48,16 @@ module.exports.find = (app) => {
       delete user["isVerified"];
       delete user["stream_key"];
       delete user["stream_password"];
-      delete user["patreon"];
-      delete user["twitch"];
+      if (user.patreon) {
+        delete user.patreon["id"];
+        delete user.patreon["access_token"];
+        delete user.patreon["refresh_token"];
+      }
+      if (user.twitch) {
+        delete user.twitch["id"];
+        delete user.twitch["access_token"];
+        delete user.twitch["refresh_token"];
+      }
     }
 
     return res.json(users);
@@ -167,30 +160,37 @@ module.exports.patch = (app) => {
   };
 };
 
-module.exports.password = (app) => {
+module.exports.v2PatchTitle = (app) => {
   return async (req, res, next) => {
-    const { password, user_id } = req.body;
+    const user = req.user,
+      { title } = req.body;
 
-    if (!password)
+    if (title == null)
       return res
         .status(400)
-        .json({ error: true, msg: "Missing password parameter.." });
+        .json({ error: true, msg: "Missing title param.." });
 
-    if (!username)
+    if (title != null && typeof title != "string")
       return res
         .status(400)
-        .json({ error: true, msg: "Missing user_id parameter.." });
+        .json({ error: true, msg: "Title's type is not a string.." });
 
     const client = app.get("client");
 
-    const user = await client.get(user_id).catch(() => null);
-    if (!user)
-      return res
-        .status(404)
-        .json({ error: true, msg: "User id does not exist.." });
+    const error = await client
+      .service("users")
+      .patch(user.id, {
+        title: title,
+      })
+      .then(() => false)
+      .catch(() => true);
 
-    user.stream_password === password
-      ? res.status(200).json({ error: false, msg: "Success" })
-      : res.status(403).json({ error: true, msg: "Wrong password.." });
+    if (error)
+      return res.status(500).json({
+        error: true,
+        msg: "Server ecountered an error trying to patch user..",
+      });
+
+    res.json({ error: false, msg: "Updated user!" });
   };
 };
