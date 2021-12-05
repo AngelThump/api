@@ -4,7 +4,7 @@ module.exports.find = (app) => {
     let streams = await client
       .service("streams")
       .find()
-      .then((res) => res.filter((stream) => !stream.unlist))
+      .then((res) => res.filter((stream) => !stream.user.unlist))
       .catch(() => null);
 
     if (!streams)
@@ -47,7 +47,7 @@ module.exports.get = (app) => {
       streams = await client
         .service("streams")
         .find({ query: { userId: user_id } })
-        .then((res) => res.filter((stream) => !stream.unlist))
+        .then((res) => res.filter((stream) => !stream.user.unlist))
         .catch(() => null);
     } else {
       const user = await client
@@ -65,7 +65,7 @@ module.exports.get = (app) => {
       streams = await client
         .service("streams")
         .find({ query: { userId: user.id } })
-        .then((res) => res.filter((stream) => !stream.unlist))
+        .then((res) => res.filter((stream) => !stream.user.unlist))
         .catch((e) => {
           console.error(e);
           return null;
@@ -151,7 +151,7 @@ module.exports.v2Get = (app) => {
     const streams = await client
       .service("streams")
       .find({ query: { userId: user.id } })
-      .then((res) => res.filter((stream) => !stream.unlist))
+      .then((res) => res.filter((stream) => !stream.user.unlist))
       .catch((e) => {
         console.error(e);
         return null;
