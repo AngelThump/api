@@ -1,4 +1,4 @@
-const axios = require('axios');
+const axios = require("axios");
 
 module.exports.find = (app) => {
   return async (req, res, next) => {
@@ -23,7 +23,7 @@ module.exports.find = (app) => {
         .then((res) => res.data)
         .catch(() => null);
     } else {
-      const usernames = username.split(",").slice(0, 50);
+      const usernames = username.toLowerCase().split(",").slice(0, 50);
       users = await client
         .service("users")
         .find({
@@ -81,6 +81,8 @@ module.exports.getUser = (app) => {
         console.error(e);
         return null;
       });
+
+    if (!data) return res.status(500).json({ error: true, msg: "Failed to get user" });
 
     const user = data.user;
     req.user = user;

@@ -51,7 +51,7 @@ module.exports.get = (app) => {
     } else {
       const user = await client
         .service("users")
-        .find({ query: { username: username } })
+        .find({ query: { username: username.toLowerCase() } })
         .then((res) => res.data[0])
         .catch(() => null);
 
