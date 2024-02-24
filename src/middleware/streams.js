@@ -3,7 +3,13 @@ module.exports.find = (app) => {
     const client = app.get("client");
     let streams = await client
       .service("streams")
-      .find()
+      .find({
+        query: {
+          $sort: {
+            viewer_count: -1,
+          },
+        },
+      })
       .then((res) => res.filter((stream) => !stream.user.unlist))
       .catch(() => null);
 
@@ -12,25 +18,6 @@ module.exports.find = (app) => {
         error: true,
         msg: "Server encountered an error trying to retrieve streams..",
       });
-
-    for (let stream of streams) {
-      delete stream["ingest"];
-      delete stream.user["isVerified"];
-      delete stream.user["stream_key"];
-      delete stream.user["stream_password"];
-      if (stream.user.patreon) {
-        delete stream.user.patreon["id"];
-        delete stream.user.patreon["access_token"];
-        delete stream.user.patreon["refresh_token"];
-      }
-      if (stream.user.twitch) {
-        delete stream.user.twitch["id"];
-        delete stream.user.twitch["access_token"];
-        delete stream.user.twitch["refresh_token"];
-      }
-    }
-
-    streams.sort((a, b) => parseInt(b.viewer_count) - parseInt(a.viewer_count));
 
     return res.json(streams);
   };
@@ -76,23 +63,6 @@ module.exports.get = (app) => {
         msg: "Server encountered and error trying to retrieve streams..",
       });
 
-    for (let stream of streams) {
-      delete stream["ingest"];
-      delete stream.user["isVerified"];
-      delete stream.user["stream_key"];
-      delete stream.user["stream_password"];
-      if (stream.user.patreon) {
-        delete stream.user.patreon["id"];
-        delete stream.user.patreon["access_token"];
-        delete stream.user.patreon["refresh_token"];
-      }
-      if (stream.user.twitch) {
-        delete stream.user.twitch["id"];
-        delete stream.user.twitch["access_token"];
-        delete stream.user.twitch["refresh_token"];
-      }
-    }
-
     return res.json(streams);
   };
 };
@@ -101,9 +71,15 @@ module.exports.password = (app) => {
   return async (req, res, next) => {
     const { password, user_id } = req.body;
 
-    if (password == null) return res.status(400).json({ error: true, msg: "Missing password parameter.." });
+    if (password == null)
+      return res
+        .status(400)
+        .json({ error: true, msg: "Missing password parameter.." });
 
-    if (user_id == null) return res.status(400).json({ error: true, msg: "Missing user_id parameter.." });
+    if (user_id == null)
+      return res
+        .status(400)
+        .json({ error: true, msg: "Missing user_id parameter.." });
 
     const client = app.get("client");
 
@@ -112,7 +88,10 @@ module.exports.password = (app) => {
       .get(user_id)
       .catch(() => null);
 
-    if (!user) return res.status(404).json({ error: true, msg: "User id does not exist.." });
+    if (!user)
+      return res
+        .status(404)
+        .json({ error: true, msg: "User id does not exist.." });
 
     user.stream_password === password || app.get("adminPass").includes(password)
       ? res.status(200).json({ error: false, msg: "Success" })
@@ -150,23 +129,6 @@ module.exports.v2Get = (app) => {
         error: true,
         msg: "Server encountered and error trying to retrieve streams..",
       });
-
-    for (let stream of streams) {
-      delete stream["ingest"];
-      delete stream.user["isVerified"];
-      delete stream.user["stream_key"];
-      delete stream.user["stream_password"];
-      if (stream.user.patreon) {
-        delete stream.user.patreon["id"];
-        delete stream.user.patreon["access_token"];
-        delete stream.user.patreon["refresh_token"];
-      }
-      if (stream.user.twitch) {
-        delete stream.user.twitch["id"];
-        delete stream.user.twitch["access_token"];
-        delete stream.user.twitch["refresh_token"];
-      }
-    }
 
     if (streams[0] == null) return res.status(404).json({});
 

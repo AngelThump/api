@@ -3,7 +3,10 @@ const axios = require("axios");
 module.exports.find = (app) => {
   return async (req, res, next) => {
     const { username, user_id } = req.query;
-    if (!username && !user_id) return res.status(400).json({ error: true, msg: "Missing username or user_id in Query" });
+    if (!username && !user_id)
+      return res
+        .status(400)
+        .json({ error: true, msg: "Missing username or user_id in Query" });
 
     const client = app.get("client");
 
@@ -43,29 +46,14 @@ module.exports.find = (app) => {
         msg: "Server encountered an error trying to retrieve users..",
       });
 
-    for (let user of users) {
-      delete user["isVerified"];
-      delete user["stream_key"];
-      delete user["stream_password"];
-      if (user.patreon) {
-        delete user.patreon["id"];
-        delete user.patreon["access_token"];
-        delete user.patreon["refresh_token"];
-      }
-      if (user.twitch) {
-        delete user.twitch["id"];
-        delete user.twitch["access_token"];
-        delete user.twitch["refresh_token"];
-      }
-    }
-
     return res.json(users);
   };
 };
 
 module.exports.getUser = (app) => {
   return async (req, res, next) => {
-    if (!req.headers["authorization"]) return res.status(403).json({ error: true, msg: "Not Authorized" });
+    if (!req.headers["authorization"])
+      return res.status(403).json({ error: true, msg: "Not Authorized" });
 
     const authHeader = req.headers.authorization.split(" ")[1];
     const data = await axios({
@@ -82,7 +70,8 @@ module.exports.getUser = (app) => {
         return null;
       });
 
-    if (!data) return res.status(500).json({ error: true, msg: "Failed to get user" });
+    if (!data)
+      return res.status(500).json({ error: true, msg: "Failed to get user" });
 
     const user = data.user;
     req.user = user;
@@ -95,7 +84,16 @@ module.exports.patch = (app) => {
     const user = req.user,
       { title, nsfw, password_protect, unlist, stream_password } = req.body;
 
-    if (title == null && nsfw == null && password_protect == null && unlist == null && stream_password == null) return res.status(400).json({ error: true, msg: "Missing at least one parameter." });
+    if (
+      title == null &&
+      nsfw == null &&
+      password_protect == null &&
+      unlist == null &&
+      stream_password == null
+    )
+      return res
+        .status(400)
+        .json({ error: true, msg: "Missing at least one parameter." });
 
     if (
       (title != null && typeof title != "string") ||
@@ -109,8 +107,15 @@ module.exports.patch = (app) => {
         msg: "At least one parameter is not the right type..",
       });
 
-    if (user.patreon && !user.patreon.isPatron && user.patreon.tier < 2 && (password_protect != null || unlist != null || stream_password != null))
-      return res.status(403).json({ error: true, msg: "Not a patreon member." });
+    if (
+      user.patreon &&
+      !user.patreon.isPatron &&
+      user.patreon.tier < 2 &&
+      (password_protect != null || unlist != null || stream_password != null)
+    )
+      return res
+        .status(403)
+        .json({ error: true, msg: "Not a patreon member." });
 
     const client = app.get("client");
 
@@ -119,9 +124,13 @@ module.exports.patch = (app) => {
       .patch(user.id, {
         title: title != null && title.length > 0 ? title : user.title,
         nsfw: nsfw != null ? nsfw : user.nsfw,
-        password_protect: password_protect != null ? password_protect : user.password_protect,
+        password_protect:
+          password_protect != null ? password_protect : user.password_protect,
         unlist: unlist != null ? unlist : user.unlist,
-        stream_password: stream_password != null && stream_password.length > 0 ? stream_password : user.stream_password,
+        stream_password:
+          stream_password != null && stream_password.length > 0
+            ? stream_password
+            : user.stream_password,
       })
       .then(() => false)
       .catch(() => true);
@@ -141,9 +150,15 @@ module.exports.v2PatchTitle = (app) => {
     const user = req.user,
       { title } = req.body;
 
-    if (title == null) return res.status(400).json({ error: true, msg: "Missing title param.." });
+    if (title == null)
+      return res
+        .status(400)
+        .json({ error: true, msg: "Missing title param.." });
 
-    if (title != null && typeof title != "string") return res.status(400).json({ error: true, msg: "Title's type is not a string.." });
+    if (title != null && typeof title != "string")
+      return res
+        .status(400)
+        .json({ error: true, msg: "Title's type is not a string.." });
 
     const client = app.get("client");
 
