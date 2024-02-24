@@ -1,17 +1,13 @@
 /* eslint-disable no-console */
-const logger = require('./logger');
-const app = require('./app');
-const port = app.get('port');
-const server = app.listen(port);
+const logger = require("./logger");
+const app = require("./app");
+const port = app.get("port");
+const host = app.get("host");
 
-process.on('unhandledRejection', (reason, p) =>
-  logger.error('Unhandled Rejection at: Promise ', p, reason)
+process.on("unhandledRejection", (reason) =>
+  logger.error("Unhandled Rejection %O", reason)
 );
 
-process.on('unhandledRejection', function(reason, p){
-  console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
-  // application specific logging here
+app.listen(port).then(() => {
+  logger.info(`Feathers app listening on http://${host}:${port}`);
 });
-server.on('listening', () =>
-  logger.info('Feathers application started on http://%s:%d', app.get('host'), port)
-);
