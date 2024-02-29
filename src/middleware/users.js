@@ -21,6 +21,23 @@ module.exports.find = (app) => {
             id: {
               $in: user_ids,
             },
+            $select: [
+              "id",
+              "username",
+              "display_name",
+              "type",
+              "isVerified",
+              "title",
+              "angel",
+              "banned",
+              "password_protect",
+              "nsfw",
+              "unlist",
+              "offline_banner_url",
+              "followers",
+              "createdAt",
+              "updatedAt",
+            ],
           },
         })
         .then((res) => res.data)
@@ -34,6 +51,23 @@ module.exports.find = (app) => {
             username: {
               $in: usernames,
             },
+            $select: [
+              "id",
+              "username",
+              "display_name",
+              "type",
+              "isVerified",
+              "title",
+              "angel",
+              "banned",
+              "password_protect",
+              "nsfw",
+              "unlist",
+              "offline_banner_url",
+              "followers",
+              "createdAt",
+              "updatedAt",
+            ],
           },
         })
         .then((res) => res.data)
