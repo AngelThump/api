@@ -38,6 +38,8 @@ module.exports.find = (app) => {
               "followers",
               "createdAt",
               "updatedAt",
+              "patreon",
+              "twitch",
             ],
           },
         })
@@ -69,6 +71,8 @@ module.exports.find = (app) => {
               "followers",
               "createdAt",
               "updatedAt",
+              "patreon",
+              "twitch",
             ],
           },
         })
